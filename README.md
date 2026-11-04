@@ -162,10 +162,11 @@ Gewählt wird die Kombination mit der kleinsten Summe der quadrierten Restwinkel
 für Längs- und Querneigung. Bei gleichem Ergebnis werden geringere Verwindung,
 weniger Keile und geringere Gesamthöhe bevorzugt.
 
-Ab beta.7 zeigen die Zentimeterwerte am Fahrzeug die **aktuelle relative Radhöhe**
-zur Fahrzeugmitte: positiv bedeutet höher, negativ tiefer. Sie werden aus den
-Neigungswinkeln berechnet und sind keine direkt gemessenen Radabstände.
-Die geplanten Keilhöhen und Stufen stehen getrennt darunter im Zwei-Keil-Plan. Die theoretischen Sensoren „… anheben“
+Ab beta.8 zeigen die Zahlen am Fahrzeug wieder die ursprünglichen **theoretischen
+Anhebehöhen je Rad**. Sie sind aus den Winkeln berechnet und keine direkt gemessenen
+Abstände. Der Bezug ist die höchste Ecke, nicht die Fahrzeugmitte.
+Der Zwei-Keil-Plan mit tatsächlich verfügbaren Stufen steht getrennt darunter.
+Die theoretischen Sensoren „… anheben“
 bleiben als separate geometrische Vier-Rad-Korrektur erhalten. Die Sensoren
 „Keil …“, die Keilempfehlung und beide Karten verwenden denselben Zwei-Keil-Plan.
 Die bisherigen „Milenco …“-Entitäten behalten ihre IDs, nennen aber die Stufe
@@ -192,3 +193,10 @@ Prüfungen: python -m unittest discover -s tests -v und node tests/test_card.cjs
 Aktuelle relative Radhöhen am Fahrzeug, Zwei-Keil-Plan separat darunter.
 Das Xparkle-Logo ist aus beiden Karten entfernt. Versionskennung und
 Ressourcenparameter sind 1.0.1-beta.7. Die Zwei-Keil-Berechnung ist unverändert.
+
+### Fork beta.8
+
+Die vier ursprünglichen theoretischen Anhebewerte sind wiederhergestellt.
+Beta.7 hatte stattdessen relative Höhen zur Fahrzeugmitte angezeigt; das war ein
+anderer Bezug und führte zu anderen Zahlen bei gleicher Fahrzeugneigung.
+Winkelberechnung und Zwei-Keil-Optimierung bleiben unverändert.
