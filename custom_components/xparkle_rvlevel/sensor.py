@@ -18,6 +18,7 @@ DESCRIPTIONS = (
     SensorEntityDescription(key="battery", name="Batterie", native_unit_of_measurement=PERCENTAGE, device_class=SensorDeviceClass.BATTERY),
     SensorEntityDescription(key="configured_length_m", name="Berechnungslänge", native_unit_of_measurement="m", entity_category=EntityCategory.DIAGNOSTIC),
     SensorEntityDescription(key="configured_width_m", name="Berechnungsbreite", native_unit_of_measurement="m", entity_category=EntityCategory.DIAGNOSTIC),
+    SensorEntityDescription(key="configured_rear_width_m", name="Spurweite hinten", native_unit_of_measurement="m", entity_category=EntityCategory.DIAGNOSTIC),
     SensorEntityDescription(key="vehicle_profile", name="Fahrzeugprofil", entity_category=EntityCategory.DIAGNOSTIC),
     SensorEntityDescription(key="wedge_profile", name="Keilprofil", entity_category=EntityCategory.DIAGNOSTIC),
     SensorEntityDescription(key="wedge_count", name="Keilanzahl", entity_category=EntityCategory.DIAGNOSTIC),
@@ -80,9 +81,10 @@ class RVLevelSensor(SensorEntity):
         if self.entity_description.key == "configured_length_m":
             from .const import CONF_LONGITUDINAL_LENGTH, DEFAULT_LONGITUDINAL_LENGTH
             return self.coordinator.entry.options.get(CONF_LONGITUDINAL_LENGTH, DEFAULT_LONGITUDINAL_LENGTH)
-        if self.entity_description.key == "configured_width_m":
-            from .const import CONF_TRANSVERSE_WIDTH, DEFAULT_TRANSVERSE_WIDTH
-            return self.coordinator.entry.options.get(CONF_TRANSVERSE_WIDTH, DEFAULT_TRANSVERSE_WIDTH)
+        if self.entity_description.key in ("configured_width_m", "configured_rear_width_m"):
+            from .const import track_widths
+            front, rear = track_widths(self.coordinator.entry.options)
+            return rear if self.entity_description.key == "configured_rear_width_m" else front
         if self.entity_description.key == "vehicle_profile":
             from .const import CONF_VEHICLE_PROFILE, DEFAULT_VEHICLE_PROFILE, VEHICLE_PROFILES
             key = self.coordinator.entry.options.get(CONF_VEHICLE_PROFILE, DEFAULT_VEHICLE_PROFILE)

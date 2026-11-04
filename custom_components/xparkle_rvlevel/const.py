@@ -12,6 +12,8 @@ CONF_ADDRESS = "address"
 CONF_NAME = "name"
 CONF_LONGITUDINAL_LENGTH = "longitudinal_length"
 CONF_TRANSVERSE_WIDTH = "transverse_width"
+CONF_REAR_WIDTH = "rear_transverse_width"
+CONF_EQUAL_WIDTHS = "equal_track_widths"
 CONF_VEHICLE_PROFILE = "vehicle_profile"
 CONF_VEHICLE_MANUFACTURER = "vehicle_manufacturer"
 CONF_VEHICLE_MODEL = "vehicle_model"
@@ -87,3 +89,12 @@ WEDGE_PROFILES = {
     "fiamma_level_up": {"label": "Fiamma · Level Up", "manufacturer": "Fiamma", "model": "Level Up", "stages_cm": [4.0, 7.0, 13.0]},
     "fiamma_level_up_premium_s": {"label": "Fiamma · Level Up Premium S", "manufacturer": "Fiamma", "model": "Level Up Premium S", "stages_cm": [4.0, 8.0, 13.0]},
 }
+
+
+def track_widths(options):
+    """Preserve the legacy single-width setup until separate widths are saved."""
+    front = float(options.get(CONF_TRANSVERSE_WIDTH, DEFAULT_TRANSVERSE_WIDTH))
+    rear = front if options.get(CONF_EQUAL_WIDTHS, True) else float(
+        options.get(CONF_REAR_WIDTH, front)
+    )
+    return front, rear

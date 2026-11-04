@@ -215,3 +215,22 @@ Referenzmessungen, nicht aus einer veröffentlichten Berger-Protokollspezifikati
 Keine Glättung hinzugefügt. Bei identischem Paket und gleicher Montageoption
 muss der Winkel identisch bleiben. Der Vergleich mit Berger SmartLevel und
 Rohpaketen kann Sensoränderungen von einer anderen App-Verarbeitung unterscheiden.
+
+### Fork beta.10: getrennte Spurweiten
+
+In Fahrzeug & Auffahrkeile sind Spurweite vorne, das Häkchen
+„Spurweite vorne und hinten gleich“ und Spurweite hinten einstellbar.
+Einheit: Meter, gemessen von Radmitte zu Radmitte. Für das hier getestete
+Fahrzeug vorne 1,81 m und hinten 1,98 m eintragen und das Häkchen entfernen.
+Das hintere Feld bleibt sichtbar; bei gesetztem Häkchen wird vorne für beide
+Achsen verwendet. Profile überschreiben manuell eingetragene Spurweiten nicht.
+Alte Konfigurationen verwenden ohne Änderung weiterhin denselben Wert für beide.
+
+Die vier physischen Radhöhen werden aus Radstand und der jeweiligen Spurweite
+berechnet; die Anhebekorrektur bezieht sich auf die höchste Ecke. Der
+Zwei-Keil-Plan passt die Ebene an die tatsächlichen vier Radpositionen an.
+Bei reiner Querneigung können daher auch links vorne und links hinten
+unterschiedliche relative Höhen haben. Die Winkeldekodierung bleibt unverändert.
+Der Sensor „Querkorrektur“ zeigt den größeren der beiden seitlichen
+Höhenunterschiede. „Berechnungsbreite“ bleibt aus Kompatibilität die Spurweite
+vorne; ein zusätzlicher Diagnosesensor zeigt die effektive Spurweite hinten.

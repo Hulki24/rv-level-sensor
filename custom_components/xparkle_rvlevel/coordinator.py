@@ -25,7 +25,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .orientation import vehicle_angles
-from .planner import plan_wedges
+from .planner import plan_wedges, corner_heights
 
 from .const import (
     CHAR_FFF1, CHAR_FFF2, CHAR_FFF4, CHAR_FFF6, CHAR_FFF8,
@@ -33,7 +33,7 @@ from .const import (
     CONF_LONGITUDINAL_LENGTH, CONF_TRANSVERSE_WIDTH,
     DEFAULT_LONGITUDINAL_LENGTH, DEFAULT_TRANSVERSE_WIDTH,
     CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION,
-    CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE, WEDGE_PROFILES,
+    CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE, WEDGE_PROFILES, track_widths,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -384,69 +384,20 @@ class RVLevelCoordinator:
                 CONF_LONGITUDINAL_LENGTH, DEFAULT_LONGITUDINAL_LENGTH
             )
         )
-        width_m = float(
-            self.entry.options.get(
-                CONF_TRANSVERSE_WIDTH, DEFAULT_TRANSVERSE_WIDTH
-            )
-        )
+        width_m, rear_width_m = track_widths(self.entry.options)
 
         long_cm = abs(length_m * 100.0 * math.tan(math.radians(longitudinal)))
-        trans_cm = abs(width_m * 100.0 * math.tan(math.radians(transverse)))
+        trans_cm = abs(max(width_m, rear_width_m) * 100.0 * math.tan(math.radians(transverse)))
 
         self.state.longitudinal_lift_cm = round(long_cm, 1)
         self.state.transverse_lift_cm = round(trans_cm, 1)
 
-        # Match the orientation shown by the original Xparkle app for this
-        # installation. The app's arrows are leveling corrections: in the
-        # captured reference state the FRONT is physically about 17.5 cm too
-        # HIGH, so the useful instruction is to raise the REAR by 17.5 cm.
-        #
-        # Reference:
-        #   longitudinal +2.32° -> front high by ~17.7 cm
-        #   transverse   +0.43° -> one side differs by ~1.7 cm
-        #
-        # We expose both the physical "too high" state and the lift correction.
-        if longitudinal >= 0:
-            front_high = long_cm
-            rear_high = 0.0
-            front_lift = 0.0
-            rear_lift = long_cm
-        else:
-            front_high = 0.0
-            rear_high = long_cm
-            front_lift = long_cm
-            rear_lift = 0.0
-
-        # For the observed mounting orientation positive transverse means the
-        # right side is higher, so the left side is the one to lift.
-        if transverse >= 0:
-            left_high, right_high = 0.0, trans_cm
-            left_lift, right_lift = trans_cm, 0.0
-        else:
-            left_high, right_high = trans_cm, 0.0
-            left_lift, right_lift = 0.0, trans_cm
-
-        # Physical height-above-lowest-corner representation.
-        high_corners = {
-            "front_left_high_cm": front_high + left_high,
-            "front_right_high_cm": front_high + right_high,
-            "rear_left_high_cm": rear_high + left_high,
-            "rear_right_high_cm": rear_high + right_high,
-        }
-        high_min = min(high_corners.values())
-        for key, val in high_corners.items():
-            setattr(self.state, key, round(val - high_min, 1))
-
-        # Leveling instruction: how much each corner must be raised.
-        lift_corners = {
-            "front_left_lift_cm": front_lift + left_lift,
-            "front_right_lift_cm": front_lift + right_lift,
-            "rear_left_lift_cm": rear_lift + left_lift,
-            "rear_right_lift_cm": rear_lift + right_lift,
-        }
-        lift_min = min(lift_corners.values())
-        for key, val in lift_corners.items():
-            setattr(self.state, key, round(val - lift_min, 1))
+        # Evaluate the actual four wheel positions; axle widths can differ.
+        physical = corner_heights(longitudinal, transverse, length_m, width_m, rear_width_m)
+        lowest, highest = min(physical.values()), max(physical.values())
+        for corner, height in physical.items():
+            setattr(self.state, f"{corner}_high_cm", round(height - lowest, 1))
+            setattr(self.state, f"{corner}_lift_cm", round(highest - height, 1))
 
         # Human-readable status for dashboards.
         max_high = max(getattr(self.state, key) or 0.0 for key in (
@@ -465,7 +416,7 @@ class RVLevelCoordinator:
             self.entry.options.get(CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE),
             WEDGE_PROFILES[DEFAULT_WEDGE_PROFILE],
         )
-        plan = plan_wedges(longitudinal, transverse, length_m, width_m, profile["stages_cm"])
+        plan = plan_wedges(longitudinal, transverse, length_m, width_m, profile["stages_cm"], rear_width_m=rear_width_m)
         wedges = plan["heights_cm"]
         self.state.wedge_plan = plan
         labels = (("front_left", "vorne links"), ("front_right", "vorne rechts"),

@@ -44,12 +44,14 @@
       },
       "details": {
         "title": "Fahrzeug & Auffahrkeile",
-        "description": "Ausgewählt: {vehicle}. Radstand und Spurweite werden bei hinterlegten Fahrzeugen automatisch verwendet. Sensor senkrecht montieren, Schriftzug aufrecht und Vorderseite zum Innenraum. Rechts/links gelten in Fahrtrichtung. Die Wandposition ersetzt die bisherige Einstellung Normal/180°.",
+        "description": "Ausgewählt: {vehicle}. Profile liefern den Radstand. Spurweiten sind anpassbar (Radmitte zu Radmitte). Bei gleichem Wert gilt vorne auch für hinten; das hintere Feld wird dann ignoriert. Beispiel: vorne 1,81 m, hinten 1,98 m. Sensor: Schriftzug aufrecht, Vorderseite zum Innenraum; rechts/links in Fahrtrichtung.",
         "data": {
           "longitudinal_length": "Radstand (m)",
-          "transverse_width": "Spurweite (m)",
+          "transverse_width": "Spurweite vorne (m)",
           "wedge_profile": "Auffahrkeile",
-          "sensor_orientation": "Montagewand des Sensors"
+          "sensor_orientation": "Montagewand des Sensors",
+          "equal_track_widths": "Spurweite vorne und hinten gleich",
+          "rear_transverse_width": "Spurweite hinten (m)"
         }
       }
     }

@@ -7,7 +7,7 @@ from homeassistant.components.bluetooth import BluetoothServiceInfoBleak, async_
 from homeassistant.data_entry_flow import FlowResult
 from .const import (
     CONF_ADDRESS, CONF_NAME, DOMAIN, SERVICE_FFF0,
-    CONF_LONGITUDINAL_LENGTH, CONF_TRANSVERSE_WIDTH,
+    CONF_LONGITUDINAL_LENGTH, CONF_TRANSVERSE_WIDTH, CONF_REAR_WIDTH, CONF_EQUAL_WIDTHS,
     DEFAULT_LONGITUDINAL_LENGTH, DEFAULT_TRANSVERSE_WIDTH,
     CONF_VEHICLE_PROFILE, CONF_VEHICLE_MANUFACTURER, CONF_VEHICLE_MODEL, CONF_VEHICLE_YEAR,
     CONF_WEDGE_PROFILE, DEFAULT_VEHICLE_PROFILE, DEFAULT_WEDGE_PROFILE,
@@ -84,20 +84,26 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
         # Keep legacy behavior while displaying the corresponding wall.
         current_orientation={SENSOR_ORIENTATION_NORMAL:SENSOR_WALL_LEFT,
                              SENSOR_ORIENTATION_ROTATED_180:SENSOR_WALL_RIGHT}.get(current_orientation,current_orientation)
-        current_length=o.get(CONF_LONGITUDINAL_LENGTH,DEFAULT_LONGITUDINAL_LENGTH); current_width=o.get(CONF_TRANSVERSE_WIDTH,DEFAULT_TRANSVERSE_WIDTH)
+        current_length=o.get(CONF_LONGITUDINAL_LENGTH,DEFAULT_LONGITUDINAL_LENGTH)
+        same_profile=profile==self._current_profile()
+        current_width=o.get(CONF_TRANSVERSE_WIDTH,DEFAULT_TRANSVERSE_WIDTH) if same_profile else vehicle.get("track",DEFAULT_TRANSVERSE_WIDTH)
+        current_rear=o.get(CONF_REAR_WIDTH,current_width) if same_profile else current_width
+        current_equal=o.get(CONF_EQUAL_WIDTHS,True) if same_profile else True
         if user_input is not None:
             data=dict(o); data.update(user_input); data.update(self._selection); data[CONF_VEHICLE_PROFILE]=profile
             if not custom:
-                data[CONF_LONGITUDINAL_LENGTH]=vehicle["wheelbase"]; data[CONF_TRANSVERSE_WIDTH]=vehicle["track"]
+                data[CONF_LONGITUDINAL_LENGTH]=vehicle["wheelbase"]
+            if data.get(CONF_EQUAL_WIDTHS,True):
+                data[CONF_REAR_WIDTH]=data[CONF_TRANSVERSE_WIDTH]
             return self.async_create_entry(title="",data=data)
+        fields={}
         if custom:
-            schema=vol.Schema({
-                vol.Required(CONF_LONGITUDINAL_LENGTH,default=current_length):vol.All(vol.Coerce(float),vol.Range(min=.5,max=20)),
-                vol.Required(CONF_TRANSVERSE_WIDTH,default=current_width):vol.All(vol.Coerce(float),vol.Range(min=.5,max=5)),
-                vol.Required(CONF_WEDGE_PROFILE,default=current_wedge):vol.In({k:v["label"] for k,v in WEDGE_PROFILES.items()}),
-                vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_WALL_RIGHT:"Wand in Fahrtrichtung rechts",SENSOR_WALL_LEFT:"Wand in Fahrtrichtung links",SENSOR_WALL_FRONT:"Wand vorne",SENSOR_WALL_REAR:"Wand hinten"}),})
-        else:
-            schema=vol.Schema({
-                vol.Required(CONF_WEDGE_PROFILE,default=current_wedge):vol.In({k:v["label"] for k,v in WEDGE_PROFILES.items()}),
-                vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_WALL_RIGHT:"Wand in Fahrtrichtung rechts",SENSOR_WALL_LEFT:"Wand in Fahrtrichtung links",SENSOR_WALL_FRONT:"Wand vorne",SENSOR_WALL_REAR:"Wand hinten"}),})
-        return self.async_show_form(step_id="details",data_schema=schema,description_placeholders={"vehicle":vehicle.get("label","Benutzerdefiniert")})
+            fields[vol.Required(CONF_LONGITUDINAL_LENGTH,default=current_length)]=vol.All(vol.Coerce(float),vol.Range(min=.5,max=20))
+        fields.update({
+            vol.Required(CONF_TRANSVERSE_WIDTH,default=current_width):vol.All(vol.Coerce(float),vol.Range(min=.5,max=5)),
+            vol.Required(CONF_EQUAL_WIDTHS,default=current_equal):bool,
+            vol.Required(CONF_REAR_WIDTH,default=current_rear):vol.All(vol.Coerce(float),vol.Range(min=.5,max=5)),
+            vol.Required(CONF_WEDGE_PROFILE,default=current_wedge):vol.In({k:v["label"] for k,v in WEDGE_PROFILES.items()}),
+            vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_WALL_RIGHT:"Wand in Fahrtrichtung rechts",SENSOR_WALL_LEFT:"Wand in Fahrtrichtung links",SENSOR_WALL_FRONT:"Wand vorne",SENSOR_WALL_REAR:"Wand hinten"}),
+        })
+        return self.async_show_form(step_id="details",data_schema=vol.Schema(fields),description_placeholders={"vehicle":vehicle.get("label","Benutzerdefiniert")})
