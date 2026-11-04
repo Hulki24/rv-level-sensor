@@ -153,3 +153,34 @@ am echten Sensor zu prüfen. Es wird keine Einstellung in die Sensor-Firmware ge
 Nach der Auswahl prüfen: Front höher ergibt positive Längsneigung, rechte Seite höher
 positive Querneigung. Bei Front-/Heckwand zusätzlich prüfen, dass die Achsen nicht vertauscht
 angezeigt werden. Ein vorhandener Nullabgleich der App wird dadurch nicht ersetzt.
+
+## Planung mit maximal zwei Keilen (Fork beta.6)
+
+Die Integration vergleicht alle Radpaare sowie einzelne Keile und die Variante ohne
+Keil. Verwendet werden ausschließlich die festen Stufen des gewählten Keilprofils.
+Gewählt wird die Kombination mit der kleinsten Summe der quadrierten Restwinkel
+für Längs- und Querneigung. Bei gleichem Ergebnis werden geringere Verwindung,
+weniger Keile und geringere Gesamthöhe bevorzugt.
+
+Die Zentimeterwerte an den Rädern in der Karte zeigen jetzt **geplante Keilhöhen**.
+Null bedeutet: an diesem Rad kein Keil. Die theoretischen Sensoren „… anheben“
+bleiben als separate geometrische Vier-Rad-Korrektur erhalten. Die Sensoren
+„Keil …“, die Keilempfehlung und beide Karten verwenden denselben Zwei-Keil-Plan.
+Die bisherigen „Milenco …“-Entitäten behalten ihre IDs, nennen aber die Stufe
+des tatsächlich ausgewählten Keilprofils.
+
+Die Restneigung ist eine **Modellschätzung** aus einer Ebene durch die vier
+Radaufstandspunkte mit gleicher Gewichtung. Federung, Reifen und Boden sind
+nicht modelliert; insbesondere unterschiedliche Stufen können die Federung
+verschränken. Das Ergebnis deshalb während des Ausrichtens live kontrollieren.
+
+### Aktualisierung zum Testen
+
+Den vollständigen Ordner custom_components/xparkle_rvlevel dieses Branches
+ersetzen, Home Assistant vollständig neu starten und die Browserseite neu laden.
+Die automatisch registrierte Kartenressource erhält den neuen Versionsparameter
+1.0.1-beta.6; die Karte zeigt dieselbe Versionskennung. Bei manuell verwalteten
+Ressourcen den Versionsparameter entsprechend aktualisieren. Nur die JavaScript-
+Ressource auszutauschen reicht nicht, da der Plan in Python berechnet wird.
+
+Prüfungen: python -m unittest discover -s tests -v und node tests/test_card.cjs.

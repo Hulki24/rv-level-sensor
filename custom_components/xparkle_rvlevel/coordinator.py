@@ -25,6 +25,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .orientation import vehicle_angles
+from .planner import plan_wedges
 
 from .const import (
     CHAR_FFF1, CHAR_FFF2, CHAR_FFF4, CHAR_FFF6, CHAR_FFF8,
@@ -32,7 +33,7 @@ from .const import (
     CONF_LONGITUDINAL_LENGTH, CONF_TRANSVERSE_WIDTH,
     DEFAULT_LONGITUDINAL_LENGTH, DEFAULT_TRANSVERSE_WIDTH,
     CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION,
-
+    CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE, WEDGE_PROFILES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,6 +76,7 @@ class RVLevelState:
     wedge_rear_left_cm: float | None = None
     wedge_rear_right_cm: float | None = None
     wedge_instruction: str | None = None
+    wedge_plan: dict[str, Any] | None = None
     triple_front_left: str | None = None
     triple_front_right: str | None = None
     triple_rear_left: str | None = None
@@ -444,50 +446,33 @@ class RVLevelCoordinator:
         else:
             self.state.level_status = "Korrektur erforderlich"
 
-        # Wheel-wedge recommendation. A "too high" corner must NOT receive a
-        # wedge; instead the lower corners are raised until all four corners
-        # reach the current highest plane. This makes the driver instruction
-        # the inverse of the physical "zu hoch" display.
-        highs = {
-            "front_left": self.state.front_left_high_cm or 0.0,
-            "front_right": self.state.front_right_high_cm or 0.0,
-            "rear_left": self.state.rear_left_high_cm or 0.0,
-            "rear_right": self.state.rear_right_high_cm or 0.0,
-        }
-        target = max(highs.values())
-        wedges = {key: round(max(0.0, target - value), 1) for key, value in highs.items()}
-
-        self.state.wedge_front_left_cm = wedges["front_left"]
-        self.state.wedge_front_right_cm = wedges["front_right"]
-        self.state.wedge_rear_left_cm = wedges["rear_left"]
-        self.state.wedge_rear_right_cm = wedges["rear_right"]
-
-        needed = []
-        labels = (
-            ("front_left", "vorne links"),
-            ("front_right", "vorne rechts"),
-            ("rear_left", "hinten links"),
-            ("rear_right", "hinten rechts"),
+        # Theoretical four-wheel lifts above remain independent of the finite plan.
+        profile = WEDGE_PROFILES.get(
+            self.entry.options.get(CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE),
+            WEDGE_PROFILES[DEFAULT_WEDGE_PROFILE],
         )
+        plan = plan_wedges(longitudinal, transverse, length_m, width_m, profile["stages_cm"])
+        wedges = plan["heights_cm"]
+        self.state.wedge_plan = plan
+        labels = (("front_left", "vorne links"), ("front_right", "vorne rechts"),
+                  ("rear_left", "hinten links"), ("rear_right", "hinten rechts"))
+        needed = []
         for key, label in labels:
-            if wedges[key] > 0.5:
-                needed.append(f"{label} {wedges[key]:.1f} cm")
-
-        if not needed:
-            self.state.wedge_instruction = "Keine Keile erforderlich"
-        else:
-            self.state.wedge_instruction = "Keil: " + ", ".join(needed)
-
-        def _triple3(cm: float) -> str:
-            if cm <= 0.5: return "Kein Keil"
-            if cm <= 4.0: return f"Stufe 1 (4 cm) · benötigt {cm:.1f} cm"
-            if cm <= 8.0: return f"Stufe 2 (8 cm) · benötigt {cm:.1f} cm"
-            if cm <= 12.0: return f"Stufe 3 (12 cm) · benötigt {cm:.1f} cm"
-            return f"Stufe 3 reicht nicht · benötigt {cm:.1f} cm"
-        self.state.triple_front_left = _triple3(wedges["front_left"])
-        self.state.triple_front_right = _triple3(wedges["front_right"])
-        self.state.triple_rear_left = _triple3(wedges["rear_left"])
-        self.state.triple_rear_right = _triple3(wedges["rear_right"])
+            cm = wedges[key]
+            setattr(self.state, f"wedge_{key}_cm", cm)
+            stage = plan["stages"][key]
+            text = f"Stufe {stage} ({cm:g} cm)" if stage else "Kein Keil"
+            # Retain legacy entity IDs, but use the configured wedge profile.
+            setattr(self.state, f"triple_{key}", text)
+            if stage:
+                needed.append(f"{label}: {text}")
+        advice = "; ".join(needed) if needed else "Keine Verbesserung mit den verfügbaren Keilstufen"
+        if max_high <= 0.5:
+            advice = "Keine Keile erforderlich"
+        self.state.wedge_instruction = (
+            advice + f" · Rest geschätzt: längs {plan['residual_longitudinal_angle']:+.2f}°, "
+            f"quer {plan['residual_transverse_angle']:+.2f}°"
+        )
 
     @callback
     def _notify(self) -> None:

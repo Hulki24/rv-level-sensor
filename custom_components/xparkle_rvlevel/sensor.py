@@ -92,9 +92,14 @@ class RVLevelSensor(SensorEntity):
             key = self.coordinator.entry.options.get(CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE)
             return WEDGE_PROFILES.get(key, {}).get("label", key)
         if self.entity_description.key == "wedge_count":
-            from .const import CONF_WEDGE_COUNT, DEFAULT_WEDGE_COUNT
-            return self.coordinator.entry.options.get(CONF_WEDGE_COUNT, DEFAULT_WEDGE_COUNT)
+            return 2
         return getattr(self.coordinator.state, self.entity_description.key)
+
+    @property
+    def extra_state_attributes(self):
+        if self.entity_description.key == "wedge_instruction":
+            return self.coordinator.state.wedge_plan
+        return None
 
     @property
     def available(self) -> bool:

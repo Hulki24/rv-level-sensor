@@ -12,6 +12,7 @@ exec(compile((BASE / "const.py").read_text(encoding="utf-8"), "const.py", "exec"
 tree = ast.parse((BASE / "orientation.py").read_text(encoding="utf-8"))
 tree.body = [node for node in tree.body if not isinstance(node, ast.ImportFrom)]
 exec(compile(tree, "orientation.py", "exec"), namespace)
+exec(compile((BASE / "planner.py").read_text(encoding="utf-8"), "planner.py", "exec"), namespace)
 coordinator = ast.parse((BASE / "coordinator.py").read_text(encoding="utf-8"))
 cls = next(node for node in coordinator.body if isinstance(node, ast.ClassDef) and node.name == "RVLevelCoordinator")
 decode = next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == "_decode_fff2")
@@ -38,7 +39,7 @@ class MountingTests(unittest.TestCase):
                     namespace["_decode_fff2"](obj, b"\x00" + a + b"\x00" + b + bytes([96]))
                     self.assertEqual(obj.state.longitudinal_angle, pitch)
                     self.assertEqual(obj.state.transverse_angle, roll)
-                    # Wheel lift and wedge entities must share the same transform.
+                    # Theoretical lifts must retain their orientation independently of the plan.
                     long_cm = 433.2 * math.tan(math.radians(pitch))
                     trans_cm = 174 * math.tan(math.radians(roll))
                     expected = {
@@ -48,7 +49,9 @@ class MountingTests(unittest.TestCase):
                         "rear_right": max(0, long_cm) + max(0, -trans_cm),
                     }
                     for corner, lift in expected.items():
-                        self.assertAlmostEqual(getattr(obj.state, "wedge_" + corner + "_cm"), lift, delta=.11)
+                        self.assertAlmostEqual(getattr(obj.state, corner + "_lift_cm"), lift, delta=.11)
+
+                    self.assertLessEqual(sum(v > 0 for v in obj.state.wedge_plan["heights_cm"].values()), 2)
 
     def test_legacy_options_preserve_behavior(self):
         fn = namespace["vehicle_angles"]
