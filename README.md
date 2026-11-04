@@ -162,8 +162,10 @@ Gewählt wird die Kombination mit der kleinsten Summe der quadrierten Restwinkel
 für Längs- und Querneigung. Bei gleichem Ergebnis werden geringere Verwindung,
 weniger Keile und geringere Gesamthöhe bevorzugt.
 
-Die Zentimeterwerte an den Rädern in der Karte zeigen jetzt **geplante Keilhöhen**.
-Null bedeutet: an diesem Rad kein Keil. Die theoretischen Sensoren „… anheben“
+Ab beta.7 zeigen die Zentimeterwerte am Fahrzeug die **aktuelle relative Radhöhe**
+zur Fahrzeugmitte: positiv bedeutet höher, negativ tiefer. Sie werden aus den
+Neigungswinkeln berechnet und sind keine direkt gemessenen Radabstände.
+Die geplanten Keilhöhen und Stufen stehen getrennt darunter im Zwei-Keil-Plan. Die theoretischen Sensoren „… anheben“
 bleiben als separate geometrische Vier-Rad-Korrektur erhalten. Die Sensoren
 „Keil …“, die Keilempfehlung und beide Karten verwenden denselben Zwei-Keil-Plan.
 Die bisherigen „Milenco …“-Entitäten behalten ihre IDs, nennen aber die Stufe
@@ -184,3 +186,9 @@ Ressourcen den Versionsparameter entsprechend aktualisieren. Nur die JavaScript-
 Ressource auszutauschen reicht nicht, da der Plan in Python berechnet wird.
 
 Prüfungen: python -m unittest discover -s tests -v und node tests/test_card.cjs.
+
+### Fork beta.7
+
+Aktuelle relative Radhöhen am Fahrzeug, Zwei-Keil-Plan separat darunter.
+Das Xparkle-Logo ist aus beiden Karten entfernt. Versionskennung und
+Ressourcenparameter sind 1.0.1-beta.7. Die Zwei-Keil-Berechnung ist unverändert.
