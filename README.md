@@ -234,3 +234,36 @@ unterschiedliche relative Höhen haben. Die Winkeldekodierung bleibt unveränder
 Der Sensor „Querkorrektur“ zeigt den größeren der beiden seitlichen
 Höhenunterschiede. „Berechnungsbreite“ bleibt aus Kompatibilität die Spurweite
 vorne; ein zusätzlicher Diagnosesensor zeigt die effektive Spurweite hinten.
+
+### Fork beta.11: eigene Fahrzeuge und Bilder
+
+Unter Konfigurieren → Hersteller „Benutzerdefiniert“ → „Neues Fahrzeug anlegen“
+lassen sich mehrere persönliche Fahrzeuge speichern. Bereits gespeicherte
+Fahrzeuge können dort ausgewählt, bearbeitet und umbenannt werden. Die Profile
+bleiben pro Integration/Sensor gespeichert, auch beim Wechsel zu Serienprofilen.
+
+Jedes Fahrzeug enthält einen Namen, Radstand, Spurweiten vorne/hinten samt
+Gleichheits-Häkchen, optionale Gesamtlänge/-breite/-höhe (0 = nicht angegeben)
+und je ein Bild für Drauf- und Seitenansicht. Gesamtabmessungen werden gespeichert,
+die Nivellierung rechnet weiterhin mit Radstand und Spurweiten.
+
+Bilder werden als HA-Pfad oder HTTP(S)-Bild-URL eingetragen. Beispiel:
+- Datei: /config/www/womo/adria-top.png → Bildpfad: /local/womo/adria-top.png
+- Datei: /config/www/womo/adria-side.png → Bildpfad: /local/womo/adria-side.png
+
+Dateien können über einen vorhandenen Dateieditor oder eine Dateifreigabe nach
+/config/www kopiert werden. Ein direkter Datei-Upload im Integrationsdialog
+ist nicht enthalten. Die Zuordnung von www zu /local beschreibt die
+[HA-Dokumentation](https://www.home-assistant.io/integrations/http/#hosting-files).
+Wenn www erstmals neu erstellt wird, Home Assistant neu starten.
+
+Draufsicht: Fahrzeugfront oben. Seitenansicht: Fahrzeugfront rechts.
+Bilder mit transparentem Rand eignen sich für die dunkle Karte.
+Ohne eigenes Bild oder bei einem Ladefehler erscheint die Standardgrafik.
+Bei Bildänderungen unter demselben Dateinamen kann ein neuer Name oder ein
+Versionsparameter (z.B. /local/womo/adria-top.png?v=2) den Browsercache umgehen.
+
+Bestehende benutzerdefinierte Maße bleiben beim Öffnen erhalten. Erst beim
+Speichern wird dieses Fahrzeug zu einem benannten persönlichen Profil.
+Die Dateien im Integrationsordner werden bei Updates ersetzt; eigene Bilder
+deshalb im www-Ordner ablegen.

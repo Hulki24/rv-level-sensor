@@ -98,3 +98,28 @@ def track_widths(options):
         options.get(CONF_REAR_WIDTH, front)
     )
     return front, rear
+
+CONF_CUSTOM_VEHICLES = "custom_vehicles"
+CONF_VEHICLE_NAME = "vehicle_name"
+CONF_TOP_IMAGE = "top_image"
+CONF_SIDE_IMAGE = "side_image"
+CONF_BODY_LENGTH = "body_length_m"
+CONF_BODY_WIDTH = "body_width_m"
+CONF_BODY_HEIGHT = "body_height_m"
+CUSTOM_PROFILE_PREFIX = "user_"
+
+
+def custom_vehicle_metadata(options):
+    """Only expose images and body dimensions for the active personal profile."""
+    key = options.get(CONF_VEHICLE_PROFILE, DEFAULT_VEHICLE_PROFILE)
+    custom = key == "custom" or key.startswith(CUSTOM_PROFILE_PREFIX)
+    source = options.get(CONF_CUSTOM_VEHICLES, {}).get(key, options) if custom else {}
+    return {
+        "custom_vehicle": custom,
+        "display_name": source.get(CONF_VEHICLE_NAME, "Eigenes Wohnmobil") if custom else "",
+        CONF_TOP_IMAGE: source.get(CONF_TOP_IMAGE, ""),
+        CONF_SIDE_IMAGE: source.get(CONF_SIDE_IMAGE, ""),
+        CONF_BODY_LENGTH: source.get(CONF_BODY_LENGTH, 0),
+        CONF_BODY_WIDTH: source.get(CONF_BODY_WIDTH, 0),
+        CONF_BODY_HEIGHT: source.get(CONF_BODY_HEIGHT, 0),
+    }

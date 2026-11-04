@@ -86,7 +86,10 @@ class RVLevelSensor(SensorEntity):
             front, rear = track_widths(self.coordinator.entry.options)
             return rear if self.entity_description.key == "configured_rear_width_m" else front
         if self.entity_description.key == "vehicle_profile":
-            from .const import CONF_VEHICLE_PROFILE, DEFAULT_VEHICLE_PROFILE, VEHICLE_PROFILES
+            from .const import CONF_VEHICLE_PROFILE, DEFAULT_VEHICLE_PROFILE, VEHICLE_PROFILES, custom_vehicle_metadata
+            metadata = custom_vehicle_metadata(self.coordinator.entry.options)
+            if metadata["custom_vehicle"]:
+                return metadata["display_name"]
             key = self.coordinator.entry.options.get(CONF_VEHICLE_PROFILE, DEFAULT_VEHICLE_PROFILE)
             return VEHICLE_PROFILES.get(key, {}).get("label", key)
         if self.entity_description.key == "wedge_profile":
@@ -99,6 +102,9 @@ class RVLevelSensor(SensorEntity):
 
     @property
     def extra_state_attributes(self):
+        if self.entity_description.key == "vehicle_profile":
+            from .const import custom_vehicle_metadata
+            return custom_vehicle_metadata(self.coordinator.entry.options)
         if self.entity_description.key in ("longitudinal_angle", "transverse_angle"):
             return self.coordinator.state.angle_diagnostics
         if self.entity_description.key == "wedge_instruction":

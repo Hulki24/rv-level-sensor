@@ -4,11 +4,20 @@ import math
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
+from uuid import uuid4
+from urllib.parse import urlsplit
 
 BASE=Path(__file__).resolve().parents[1]/"custom_components/xparkle_rvlevel"
 ns={}
 exec((BASE/"const.py").read_text(encoding="utf-8"),ns)
 exec((BASE/"planner.py").read_text(encoding="utf-8"),ns)
+
+
+class Field(str):
+    def __new__(cls, key, **kwargs):
+        field = super().__new__(cls, key)
+        field.default = kwargs.get("default")
+        return field
 
 
 class FlowBase:
@@ -18,10 +27,11 @@ class FlowBase:
 
 tree=ast.parse((BASE/"config_flow.py").read_text(encoding="utf-8"))
 options=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=="XparkleRVLevelOptionsFlow")
-flow_ns={**ns,"config_entries":SimpleNamespace(OptionsFlow=FlowBase),
-         "vol":SimpleNamespace(Required=lambda key,**kw:key,All=lambda *a:a,
+flow_ns={**ns,"uuid4":uuid4,"urlsplit":urlsplit,"config_entries":SimpleNamespace(OptionsFlow=FlowBase),
+         "vol":SimpleNamespace(Invalid=ValueError,Required=Field,Optional=Field,Length=lambda **kw:kw,All=lambda *a:a,
              Coerce=lambda v:v,Range=lambda **kw:kw,In=lambda v:v,Schema=lambda d:d)}
-exec(compile(ast.Module(body=[options],type_ignores=[]),"config_flow.py","exec"),flow_ns)
+image_validator=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=="image_path")
+exec(compile(ast.Module(body=[image_validator,options],type_ignores=[]),"config_flow.py","exec"),flow_ns)
 
 
 class TrackTests(unittest.TestCase):

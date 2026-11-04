@@ -1,11 +1,11 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 class Element{
- constructor(){this.nodes=new Map();this.style={};this.classList={toggle(){}};this.children=[];this.textContent="";}
+ constructor(){this.nodes=new Map();this.style={};this.dataset={};this.classList={toggle(){}};this.children=[];this.textContent="";}
  querySelector(s){if(!this.nodes.has(s))this.nodes.set(s,new Element());return this.nodes.get(s);}
  appendChild(n){this.children.push(n);}
 }
 const elements=new Map();
-const context={HTMLElement:Element,document:{createElement(){return new Element()}},
+const context={URL,HTMLElement:Element,document:{createElement(){return new Element()}},
  customElements:{get:k=>elements.get(k),define:(k,v)=>elements.set(k,v)},window:{},
  setInterval(){return 1},clearInterval(){},console};
 vm.runInNewContext(fs.readFileSync('custom_components/xparkle_rvlevel/frontend/rv-level-card.js','utf8'),context);
@@ -45,3 +45,31 @@ for(const name of ['xparkle-rv-level-top-card','xparkle-rv-level-side-card']){
  assert.match(card.querySelector('#plan').textContent,/nicht verfügbar/);
 }
 console.log('Top and side render, correct wheels/stages, residual, level hint and missing data: passed');
+const customStates={...h.states,
+ 'sensor.rv_fahrzeugprofil':state('Mein Adria',{
+  custom_vehicle:true,top_image:'/local/womo/adria-top.png',
+  side_image:'https://example.org/adria-side.png',
+  body_length_m:7.4,body_width_m:2.3,body_height_m:3.0
+ })
+};
+for(const [name,view,expected] of [
+ ['xparkle-rv-level-top-card','top','/local/womo/adria-top.png'],
+ ['xparkle-rv-level-side-card','side','https://example.org/adria-side.png']
+]){
+ const card=new (elements.get(name))();card.setConfig({entity_prefix:'sensor.rv'});card.hass={states:customStates};
+ assert.equal(card.vehicleModel().model,'Mein Adria');
+ assert.equal(card.querySelector('#modelBadge').textContent,'Mein Adria');
+ const img=card.querySelector('#vehicleImg');
+ assert.equal(img.src,expected);
+ img.onerror();
+ const fallback='/rv-level-sensor/vehicles/master4-semi-'+view+'.png';
+ assert.equal(img.src,fallback);
+ // A sensor refresh must not retry a broken URL over and over.
+ card.hass={states:customStates};assert.equal(img.src,fallback);
+ const next={...customStates,'sensor.rv_fahrzeugprofil':state('Fahrzeug B',{custom_vehicle:true,top_image:'/local/b.png',side_image:'/local/b.png'})};
+ card.hass={states:next};assert.equal(img.src,'/local/b.png');
+ assert.equal(card.safeImage('javascript:alert(1)'),'');
+ assert.equal(card.safeImage('//example.org/image.png'),'');
+ assert.equal(card.safeImage('/local/a.png'),'/local/a.png');
+}
+console.log('Personal profile names, images, profile switching and broken-image fallback: passed');

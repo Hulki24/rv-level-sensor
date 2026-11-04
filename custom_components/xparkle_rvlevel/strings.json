@@ -43,17 +43,34 @@
         }
       },
       "details": {
-        "title": "Fahrzeug & Auffahrkeile",
-        "description": "Ausgewählt: {vehicle}. Profile liefern den Radstand. Spurweiten sind anpassbar (Radmitte zu Radmitte). Bei gleichem Wert gilt vorne auch für hinten; das hintere Feld wird dann ignoriert. Beispiel: vorne 1,81 m, hinten 1,98 m. Sensor: Schriftzug aufrecht, Vorderseite zum Innenraum; rechts/links in Fahrtrichtung.",
+        "title": "Fahrzeug, Maße & Auffahrkeile",
+        "description": "Ausgewählt: {vehicle}. Profile liefern den Radstand. Spurweiten sind anpassbar (Radmitte zu Radmitte). Bei gleichem Wert gilt vorne auch für hinten; das hintere Feld wird dann ignoriert. Beispiel: vorne 1,81 m, hinten 1,98 m. Sensor: Schriftzug aufrecht, Vorderseite zum Innenraum; rechts/links in Fahrtrichtung. Eigene Fahrzeuge: Bilder als /local/womo/top.png oder Bild-URL eintragen. Draufsicht: vorne oben; Seitenansicht: vorne rechts. Leer verwendet die Standardgrafik. Gesamtlänge/-breite/-höhe sind optional (0 = nicht angegeben); gerechnet wird mit Radstand und Spurweiten.",
         "data": {
           "longitudinal_length": "Radstand (m)",
           "transverse_width": "Spurweite vorne (m)",
           "wedge_profile": "Auffahrkeile",
           "sensor_orientation": "Montagewand des Sensors",
           "equal_track_widths": "Spurweite vorne und hinten gleich",
-          "rear_transverse_width": "Spurweite hinten (m)"
+          "rear_transverse_width": "Spurweite hinten (m)",
+          "vehicle_name": "Fahrzeugname",
+          "top_image": "Bild Draufsicht (Pfad oder URL)",
+          "side_image": "Bild Seitenansicht (Pfad oder URL)",
+          "body_length_m": "Gesamtlänge (m, optional)",
+          "body_width_m": "Gesamtbreite (m, optional)",
+          "body_height_m": "Gesamthöhe (m, optional)"
+        }
+      },
+      "custom_vehicle": {
+        "title": "Eigene Fahrzeuge",
+        "description": "Vorhandenes Fahrzeug auswählen und bearbeiten oder ein weiteres anlegen. Maße und Bilder bleiben pro Fahrzeug gespeichert.",
+        "data": {
+          "vehicle_profile": "Eigenes Fahrzeug"
         }
       }
+    },
+    "error": {
+      "invalid_image": "Gib einen Bildpfad beginnend mit / oder eine vollständige HTTP(S)-Bild-URL ein.",
+      "invalid_name": "Gib einen Fahrzeugnamen ein."
     }
   }
 }
