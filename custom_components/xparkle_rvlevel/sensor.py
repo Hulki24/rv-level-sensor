@@ -97,6 +97,8 @@ class RVLevelSensor(SensorEntity):
 
     @property
     def extra_state_attributes(self):
+        if self.entity_description.key in ("longitudinal_angle", "transverse_angle"):
+            return self.coordinator.state.angle_diagnostics
         if self.entity_description.key == "wedge_instruction":
             return self.coordinator.state.wedge_plan
         return None

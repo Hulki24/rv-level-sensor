@@ -200,3 +200,18 @@ Die vier ursprünglichen theoretischen Anhebewerte sind wiederhergestellt.
 Beta.7 hatte stattdessen relative Höhen zur Fahrzeugmitte angezeigt; das war ein
 anderer Bezug und führte zu anderen Zahlen bei gleicher Fahrzeugneigung.
 Winkelberechnung und Zwei-Keil-Optimierung bleiben unverändert.
+
+### Fork beta.9
+
+Milenco Quattro 2: Stufen korrigiert auf 4 / 8 / 12 / 18 cm entsprechend
+[Fritz Berger](https://www.fritz-berger.de/artikel/milenco-quattro-auffahrkeile-4-stufig-2er-set-323862).
+Dadurch kann sich der optimale Zwei-Keil-Plan ändern.
+
+Die Winkelsensoren enthalten jetzt Diagnoseattribute: empfangenes FFF2-Paket,
+vorzeichenbehaftete Rohzahlen, Winkel vor Montagekorrektur und Montageoption.
+Die Dekodierung bleibt unverändert: Bytes 1–2 bzw. 4–5, signed big-endian,
+geteilt durch 100. Diese Protokollannahme stammt aus den bisherigen
+Referenzmessungen, nicht aus einer veröffentlichten Berger-Protokollspezifikation.
+Keine Glättung hinzugefügt. Bei identischem Paket und gleicher Montageoption
+muss der Winkel identisch bleiben. Der Vergleich mit Berger SmartLevel und
+Rohpaketen kann Sensoränderungen von einer anderen App-Verarbeitung unterscheiden.

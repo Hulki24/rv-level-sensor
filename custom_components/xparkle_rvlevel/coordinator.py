@@ -60,6 +60,7 @@ class RVLevelState:
     longitudinal_angle: float | None = None
     transverse_angle: float | None = None
     battery: int | None = None
+    angle_diagnostics: dict[str, Any] | None = None
     longitudinal_lift_cm: float | None = None
     transverse_lift_cm: float | None = None
     front_left_lift_cm: float | None = None
@@ -354,6 +355,19 @@ class RVLevelCoordinator:
 
         longitudinal = longitudinal_raw / 100.0
         transverse = transverse_raw / 100.0
+
+        # Keep the exact source values visible; no smoothing or hidden offsets.
+        self.state.angle_diagnostics = {
+            "raw_fff2": data.hex(" ").upper(),
+            "raw_longitudinal_count": longitudinal_raw,
+            "raw_transverse_count": transverse_raw,
+            "raw_longitudinal_angle": longitudinal,
+            "raw_transverse_angle": transverse,
+            "sensor_orientation": self.entry.options.get(
+                CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION
+            ),
+            "decoder_scale_degrees_per_count": 0.01,
+        }
 
         # Normalize once so every entity and card uses vehicle coordinates.
         longitudinal, transverse = vehicle_angles(

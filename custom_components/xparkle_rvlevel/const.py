@@ -80,7 +80,7 @@ VEHICLE_PROFILES["custom"] = {"label": "Benutzerdefiniertes Fahrzeug", "manufact
 WEDGE_PROFILES = {
     "milenco_triple_3": {"label": "Milenco · Triple Level / Triple 3", "manufacturer": "Milenco", "model": "Triple Level", "stages_cm": [4.0, 8.0, 12.0]},
     "milenco_trident": {"label": "Milenco · Trident", "manufacturer": "Milenco", "model": "Trident", "stages_cm": [4.0, 11.0, 17.0]},
-    "milenco_quattro_2": {"label": "Milenco · Quattro 2", "manufacturer": "Milenco", "model": "Quattro 2", "stages_cm": [4.0, 8.0, 12.0, 16.0]},
+    "milenco_quattro_2": {"label": "Milenco · Quattro 2", "manufacturer": "Milenco", "model": "Quattro 2", "stages_cm": [4.0, 8.0, 12.0, 18.0]},
     "thule_levelers": {"label": "Thule · Levelers 307617", "manufacturer": "Thule", "model": "Levelers 307617", "stages_cm": [4.4, 7.8, 11.2]},
     "froli_stufenkeil": {"label": "Froli · Stufenkeil", "manufacturer": "Froli", "model": "Stufenkeil", "stages_cm": [4.5, 7.5, 10.5]},
     "froli_stufenkeil_xl": {"label": "Froli · Stufenkeil XL", "manufacturer": "Froli", "model": "Stufenkeil XL", "stages_cm": [6.5, 11.5]},
