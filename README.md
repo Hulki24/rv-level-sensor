@@ -131,3 +131,25 @@ Bitte Home-Assistant-Version, Sensor-Modell/Handelsname, Bluetooth-Gerätename u
 ## Hinweis
 
 Dies ist ein Community-Projekt und keine offizielle Integration von Xparkle, Fritz Berger, Ahorn Camp oder Home Assistant. Marken- und Produktnamen dienen nur der Kompatibilitätsbeschreibung.
+
+## Montagewand (Fork)
+
+Für den Berger SmartLevel kann die Montagewand in den Integrationsoptionen ausgewählt werden:
+**in Fahrtrichtung rechts**, **links**, **vorne** oder **hinten**.
+Voraussetzung: senkrechte Wand, Schriftzug aufrecht, Sensorvorderseite zum Innenraum.
+Die Auswahl bezeichnet die Wand, nicht die Blickrichtung der Sensorfront.
+
+Die rechte Wand entspricht der bisher funktionierenden Einstellung **180° gedreht**,
+die linke Wand der bisherigen Einstellung **Normal**. Bestehende Einstellungen bleiben
+bis zum Speichern neuer Optionen wirksam. Vorne/hinten tauschen die Achsen und passen
+das Vorzeichen an. Alle Winkel, Radhöhen und Keilempfehlungen verwenden diese Korrektur.
+
+Die [Berger-Anleitung](https://fbr.etailercdn.de/media/org/orgb_S/orgid_21221/1946738_501_898383.pdf)
+nennt die App **Berger SmartLevel** und vier Installationsrichtungen. Sie dokumentiert
+keine BLE-Achsen oder Vorzeichen. Die Zuordnung hier basiert auf der beobachteten
+rechten Wandmontage; die übrigen Wände sind daraus geometrisch abgeleitet und noch
+am echten Sensor zu prüfen. Es wird keine Einstellung in die Sensor-Firmware geschrieben.
+
+Nach der Auswahl prüfen: Front höher ergibt positive Längsneigung, rechte Seite höher
+positive Querneigung. Bei Front-/Heckwand zusätzlich prüfen, dass die Achsen nicht vertauscht
+angezeigt werden. Ein vorhandener Nullabgleich der App wird dadurch nicht ersetzt.

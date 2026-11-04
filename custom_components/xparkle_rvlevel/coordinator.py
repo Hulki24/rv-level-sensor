@@ -24,13 +24,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
+from .orientation import vehicle_angles
+
 from .const import (
     CHAR_FFF1, CHAR_FFF2, CHAR_FFF4, CHAR_FFF6, CHAR_FFF8,
     CONF_ADDRESS, CONF_NAME, DOMAIN,
     CONF_LONGITUDINAL_LENGTH, CONF_TRANSVERSE_WIDTH,
     DEFAULT_LONGITUDINAL_LENGTH, DEFAULT_TRANSVERSE_WIDTH,
     CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION,
-    SENSOR_ORIENTATION_ROTATED_180,
+
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -351,16 +353,11 @@ class RVLevelCoordinator:
         longitudinal = longitudinal_raw / 100.0
         transverse = transverse_raw / 100.0
 
-        # Beta 5: compensate a sensor mounted 180 degrees in the vehicle.
-        # A physical 180° rotation reverses both sensor axes. Applying the
-        # correction here keeps angles, corner heights and wedge advice in the
-        # same vehicle coordinate system for every dashboard card.
-        orientation = self.entry.options.get(
-            CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION
+        # Normalize once so every entity and card uses vehicle coordinates.
+        longitudinal, transverse = vehicle_angles(
+            longitudinal, transverse,
+            self.entry.options.get(CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION),
         )
-        if orientation == SENSOR_ORIENTATION_ROTATED_180:
-            longitudinal = -longitudinal
-            transverse = -transverse
 
         self.state.longitudinal_angle = round(longitudinal, 2)
         self.state.transverse_angle = round(transverse, 2)

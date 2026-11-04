@@ -13,6 +13,7 @@ from .const import (
     CONF_WEDGE_PROFILE, DEFAULT_VEHICLE_PROFILE, DEFAULT_WEDGE_PROFILE,
     CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION,
     SENSOR_ORIENTATION_NORMAL, SENSOR_ORIENTATION_ROTATED_180,
+    SENSOR_WALL_RIGHT, SENSOR_WALL_LEFT, SENSOR_WALL_FRONT, SENSOR_WALL_REAR,
     VEHICLE_PROFILES, WEDGE_PROFILES,
 )
 
@@ -80,6 +81,9 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
         vehicle=VEHICLE_PROFILES.get(profile,{})
         current_wedge=o.get(CONF_WEDGE_PROFILE,DEFAULT_WEDGE_PROFILE)
         current_orientation=o.get(CONF_SENSOR_ORIENTATION,DEFAULT_SENSOR_ORIENTATION)
+        # Keep legacy behavior while displaying the corresponding wall.
+        current_orientation={SENSOR_ORIENTATION_NORMAL:SENSOR_WALL_LEFT,
+                             SENSOR_ORIENTATION_ROTATED_180:SENSOR_WALL_RIGHT}.get(current_orientation,current_orientation)
         current_length=o.get(CONF_LONGITUDINAL_LENGTH,DEFAULT_LONGITUDINAL_LENGTH); current_width=o.get(CONF_TRANSVERSE_WIDTH,DEFAULT_TRANSVERSE_WIDTH)
         if user_input is not None:
             data=dict(o); data.update(user_input); data.update(self._selection); data[CONF_VEHICLE_PROFILE]=profile
@@ -91,9 +95,9 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
                 vol.Required(CONF_LONGITUDINAL_LENGTH,default=current_length):vol.All(vol.Coerce(float),vol.Range(min=.5,max=20)),
                 vol.Required(CONF_TRANSVERSE_WIDTH,default=current_width):vol.All(vol.Coerce(float),vol.Range(min=.5,max=5)),
                 vol.Required(CONF_WEDGE_PROFILE,default=current_wedge):vol.In({k:v["label"] for k,v in WEDGE_PROFILES.items()}),
-                vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_ORIENTATION_NORMAL:"Normal",SENSOR_ORIENTATION_ROTATED_180:"180° gedreht"}),})
+                vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_WALL_RIGHT:"Wand in Fahrtrichtung rechts",SENSOR_WALL_LEFT:"Wand in Fahrtrichtung links",SENSOR_WALL_FRONT:"Wand vorne",SENSOR_WALL_REAR:"Wand hinten"}),})
         else:
             schema=vol.Schema({
                 vol.Required(CONF_WEDGE_PROFILE,default=current_wedge):vol.In({k:v["label"] for k,v in WEDGE_PROFILES.items()}),
-                vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_ORIENTATION_NORMAL:"Normal",SENSOR_ORIENTATION_ROTATED_180:"180° gedreht"}),})
+                vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_WALL_RIGHT:"Wand in Fahrtrichtung rechts",SENSOR_WALL_LEFT:"Wand in Fahrtrichtung links",SENSOR_WALL_FRONT:"Wand vorne",SENSOR_WALL_REAR:"Wand hinten"}),})
         return self.async_show_form(step_id="details",data_schema=schema,description_placeholders={"vehicle":vehicle.get("label","Benutzerdefiniert")})
