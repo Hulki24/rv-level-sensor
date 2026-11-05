@@ -25,6 +25,13 @@ from .const import (
 def image_path(value):
     """Accept HA-relative paths or web image URLs, and allow blank defaults."""
     value = value.strip()
+    media_prefix = "media-source://image_upload/"
+    if value.startswith(media_prefix):
+        image_id = value[len(media_prefix):]
+        if len(image_id) == 32 and all(char in "0123456789abcdef" for char in image_id):
+            return f"/api/image/serve/{image_id}/original"
+    if value.startswith(("local/", "api/image/serve/")):
+        value = "/" + value
     if not value or (value.startswith("/") and not value.startswith("//")):
         return value
     try:

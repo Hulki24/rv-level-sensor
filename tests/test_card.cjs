@@ -73,3 +73,9 @@ for(const [name,view,expected] of [
  assert.equal(card.safeImage('/local/a.png'),'/local/a.png');
 }
 console.log('Personal profile names, images, profile switching and broken-image fallback: passed');
+
+const imageCard=new (elements.get('xparkle-rv-level-top-card'))();
+imageCard.setConfig({entity_prefix:'sensor.rv'});
+imageCard.hass={states:customStates,hassUrl:path=>'https://ha.example'+path};
+assert.equal(imageCard.querySelector('#vehicleImg').src,'https://ha.example/local/womo/adria-top.png');
+assert.match(imageCard.innerHTML, /id="modelBadge"><\/div><div class="scene">/);

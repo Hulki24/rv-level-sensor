@@ -79,6 +79,10 @@ class PersonalVehicleTests(unittest.TestCase):
     def test_image_path_validation(self):
         for path in ["","/local/a.png","/api/image/serve/abc/original","https://example.org/a.png"]:
             self.assertEqual(flow_ns["image_path"](path),path)
+        image_id="0123456789abcdef"*2
+        original=f"/api/image/serve/{image_id}/original"
+        self.assertEqual(flow_ns["image_path"](f"media-source://image_upload/{image_id}"),original)
+        self.assertEqual(flow_ns["image_path"](original[1:]),original)
         for path in ["javascript:alert(1)","//example.org/a.png","C:/test.png","relative.png","data:image/png;base64,x"]:
             with self.assertRaises(ValueError):flow_ns["image_path"](path)
 
