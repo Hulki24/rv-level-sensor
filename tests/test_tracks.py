@@ -31,17 +31,19 @@ class Field(str):
 
 
 class FlowBase:
+    def async_show_menu(self,**kw): return kw
     def async_show_form(self,**kw): return kw
     def async_create_entry(self,**kw): return kw
 
 
 tree=ast.parse((BASE/"config_flow.py").read_text(encoding="utf-8"))
 options=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=="XparkleRVLevelOptionsFlow")
-flow_ns={**ns,"uuid4":uuid4,"urlsplit":urlsplit,"config_entries":SimpleNamespace(OptionsFlow=FlowBase),
+flow_ns={**ns,"SelectSelector":lambda config:{option["value"]:option["label"] for option in config["options"]},"uuid4":uuid4,"urlsplit":urlsplit,"config_entries":SimpleNamespace(OptionsFlow=FlowBase),
          "vol":SimpleNamespace(Invalid=ValueError,Required=Field,Optional=Field,Length=lambda **kw:kw,All=lambda *a:a,
              Coerce=lambda v:v,Range=lambda **kw:kw,In=lambda v:v,Schema=lambda d:d)}
 image_validator=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=="image_path")
-exec(compile(ast.Module(body=[image_validator,options],type_ignores=[]),"config_flow.py","exec"),flow_ns)
+selector_setup=[n for n in tree.body if isinstance(n,ast.Assign) and any(getattr(t,"id","") in ("MOUNTING_OPTIONS","WEDGE_OPTIONS") for t in n.targets) or isinstance(n,ast.FunctionDef) and n.name=="dropdown"]
+exec(compile(ast.Module(body=[*selector_setup,image_validator,options],type_ignores=[]),"config_flow.py","exec"),flow_ns)
 
 
 class TrackTests(unittest.TestCase):

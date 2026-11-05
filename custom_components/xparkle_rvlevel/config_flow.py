@@ -7,6 +7,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components.bluetooth import BluetoothServiceInfoBleak, async_discovered_service_info
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers.selector import SelectSelector
 from .const import (
     CONF_ADDRESS, CONF_NAME, DOMAIN, SERVICE_FFF0,
     CONF_LONGITUDINAL_LENGTH, CONF_TRANSVERSE_WIDTH, CONF_REAR_WIDTH, CONF_EQUAL_WIDTHS,
@@ -21,6 +22,23 @@ from .const import (
     CONF_BODY_LENGTH, CONF_BODY_WIDTH, CONF_BODY_HEIGHT, CUSTOM_PROFILE_PREFIX,
 
 )
+
+MOUNTING_OPTIONS = {
+    SENSOR_WALL_RIGHT: "Wand in Fahrtrichtung rechts",
+    SENSOR_WALL_LEFT: "Wand in Fahrtrichtung links",
+    SENSOR_WALL_FRONT: "Wand vorne",
+    SENSOR_WALL_REAR: "Wand hinten",
+}
+
+WEDGE_OPTIONS = {key: profile["label"] for key, profile in WEDGE_PROFILES.items()}
+
+
+def dropdown(choices):
+    return SelectSelector({
+        "mode": "dropdown",
+        "options": [{"value": value, "label": label} for value, label in choices.items()],
+    })
+
 
 def image_path(value):
     """Accept HA-relative paths or web image URLs, and allow blank defaults."""
@@ -96,9 +114,56 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
         names.add("Carthago")
         names.update(profile.get(CONF_VEHICLE_MANUFACTURER, "Benutzerdefiniert")
                      for profile in self._personal_profiles().values())
-        return sorted(names, key=str.casefold)
+        return sorted(names - {"Benutzerdefiniert"}, key=str.casefold)
+
+    def _mounting(self):
+        orientation = self.config_entry.options.get(CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION)
+        return {
+            SENSOR_ORIENTATION_NORMAL: SENSOR_WALL_LEFT,
+            SENSOR_ORIENTATION_ROTATED_180: SENSOR_WALL_RIGHT,
+        }.get(orientation, orientation)
 
     async def async_step_init(self, user_input=None):
+        vehicle = self._current_vehicle()
+        options = self.config_entry.options
+        menu = ["vehicle", "dimensions", "mounting", "wedges"]
+        if any(profile.get(CONF_VEHICLE_MANUFACTURER, "Benutzerdefiniert") == "Benutzerdefiniert"
+               for profile in self._personal_profiles().values()):
+            menu.append("legacy")
+        return self.async_show_menu(
+            step_id="init", menu_options=menu,
+            description_placeholders={
+                "manufacturer": vehicle["manufacturer"],
+                "model": vehicle.get("model", vehicle.get("label", "")),
+                "mounting": MOUNTING_OPTIONS.get(self._mounting(), "—"),
+                "wedge": WEDGE_OPTIONS.get(options.get(CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE), "—"),
+            },
+        )
+
+    async def async_step_dimensions(self, user_input=None):
+        return await self.async_step_details(user_input)
+
+    async def async_step_mounting(self, user_input=None):
+        if user_input is not None:
+            return self.async_create_entry(title="", data={**self.config_entry.options, **user_input})
+        return self.async_show_form(step_id="mounting", data_schema=vol.Schema({
+            vol.Required(CONF_SENSOR_ORIENTATION, default=self._mounting()): dropdown(MOUNTING_OPTIONS),
+        }))
+
+    async def async_step_wedges(self, user_input=None):
+        if user_input is not None:
+            return self.async_create_entry(title="", data={**self.config_entry.options, **user_input})
+        return self.async_show_form(step_id="wedges", data_schema=vol.Schema({
+            vol.Required(CONF_WEDGE_PROFILE, default=self.config_entry.options.get(
+                CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE
+            )): dropdown(WEDGE_OPTIONS),
+        }))
+
+    async def async_step_legacy(self, user_input=None):
+        self._selection[CONF_VEHICLE_MANUFACTURER] = "Benutzerdefiniert"
+        return await self.async_step_model()
+
+    async def async_step_vehicle(self, user_input=None):
         if user_input is not None:
             manufacturer = user_input[CONF_VEHICLE_MANUFACTURER]
             if manufacturer == "__new__":
@@ -107,8 +172,9 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
             return await self.async_step_model()
         choices = {name: name for name in self._manufacturers()}
         choices["__new__"] = "Neuen Hersteller hinzufügen"
-        return self.async_show_form(step_id="init", data_schema=vol.Schema({
-            vol.Required(CONF_VEHICLE_MANUFACTURER, default=self._current_vehicle()["manufacturer"]): vol.In(choices)
+        current = self._current_vehicle()["manufacturer"]
+        return self.async_show_form(step_id="vehicle", data_schema=vol.Schema({
+            vol.Required(CONF_VEHICLE_MANUFACTURER, default=current if current in choices else next(iter(choices))): dropdown(choices)
         }))
 
     async def async_step_manufacturer(self, user_input=None):
@@ -152,7 +218,7 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
         if current not in choices:
             current = f"builtin:{self._current_vehicle().get('model', '')}"
         return self.async_show_form(step_id="model", data_schema=vol.Schema({
-            vol.Required(CONF_VEHICLE_PROFILE, default=current if current in choices else next(iter(choices))): vol.In(choices)
+            vol.Required(CONF_VEHICLE_PROFILE, default=current if current in choices else next(iter(choices))): dropdown(choices)
         }), description_placeholders={"manufacturer": manufacturer})
 
     async def async_step_year(self,user_input=None):
@@ -169,16 +235,11 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
         o=self.config_entry.options
         profile=self._selection.get(CONF_VEHICLE_PROFILE,self._current_profile())
         manufacturer=self._selection.get(CONF_VEHICLE_MANUFACTURER,self._current_vehicle()["manufacturer"])
-        if CONF_VEHICLE_PROFILE not in self._selection and manufacturer=="Benutzerdefiniert":
+        if manufacturer=="Benutzerdefiniert" and profile not in self._personal_profiles():
             profile="custom"
         custom=profile=="custom" or profile.startswith(CUSTOM_PROFILE_PREFIX)
         reassign_manufacturer=custom and manufacturer=="Benutzerdefiniert"
         vehicle=VEHICLE_PROFILES.get(profile,{})
-        current_wedge=o.get(CONF_WEDGE_PROFILE,DEFAULT_WEDGE_PROFILE)
-        current_orientation=o.get(CONF_SENSOR_ORIENTATION,DEFAULT_SENSOR_ORIENTATION)
-        # Keep legacy behavior while displaying the corresponding wall.
-        current_orientation={SENSOR_ORIENTATION_NORMAL:SENSOR_WALL_LEFT,
-                             SENSOR_ORIENTATION_ROTATED_180:SENSOR_WALL_RIGHT}.get(current_orientation,current_orientation)
         saved=o.get(CONF_CUSTOM_VEHICLES,{}).get(profile,{}) if custom else {}
         source=saved or o
         errors={}
@@ -206,8 +267,6 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
         personal=saved or (o if profile=="custom" else {})
         if errors:
             personal={**personal,**user_input}
-            current_wedge=user_input.get(CONF_WEDGE_PROFILE,current_wedge)
-            current_orientation=user_input.get(CONF_SENSOR_ORIENTATION,current_orientation)
         current_name=personal.get(CONF_VEHICLE_NAME,"Mein Wohnmobil")
         if user_input is not None and not errors:
             data=dict(o); data.update(user_input); data.update(self._selection); data[CONF_VEHICLE_PROFILE]=profile
@@ -243,8 +302,6 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
             vol.Required(CONF_TRANSVERSE_WIDTH,default=current_width):vol.All(vol.Coerce(float),vol.Range(min=.5,max=5)),
             vol.Required(CONF_EQUAL_WIDTHS,default=current_equal):bool,
             vol.Required(CONF_REAR_WIDTH,default=current_rear):vol.All(vol.Coerce(float),vol.Range(min=.5,max=5)),
-            vol.Required(CONF_WEDGE_PROFILE,default=current_wedge):vol.In({k:v["label"] for k,v in WEDGE_PROFILES.items()}),
-            vol.Required(CONF_SENSOR_ORIENTATION,default=current_orientation):vol.In({SENSOR_WALL_RIGHT:"Wand in Fahrtrichtung rechts",SENSOR_WALL_LEFT:"Wand in Fahrtrichtung links",SENSOR_WALL_FRONT:"Wand vorne",SENSOR_WALL_REAR:"Wand hinten"}),
         })
         if custom:
             for key in (CONF_BODY_LENGTH,CONF_BODY_WIDTH,CONF_BODY_HEIGHT):

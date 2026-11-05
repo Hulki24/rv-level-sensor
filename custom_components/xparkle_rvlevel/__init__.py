@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["sensor", "button", "binary_sensor"]
 STATIC_URL = "/rv-level-sensor"
 CARD_PATH = f"{STATIC_URL}/rv-level-card.js"
-CARD_URL = f"{CARD_PATH}?v=1.0.1-beta.13"
+CARD_URL = f"{CARD_PATH}?v=1.0.1-beta.14"
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 DATA_FRONTEND_REGISTERED = "xparkle_rvlevel_frontend_registered"
 

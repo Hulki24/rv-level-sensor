@@ -22,10 +22,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Fahrzeughersteller",
-        "description": "Wähle einen Hersteller oder füge einen neuen hinzu.",
-        "data": {
-          "vehicle_manufacturer": "Hersteller"
+        "title": "RV Level Konfiguration",
+        "description": "**Hersteller:** {manufacturer}\n\n**Fahrzeugtyp:** {model}\n\n**Montageort:** {mounting}\n\n**Auffahrkeil:** {wedge}",
+        "menu_options": {
+          "vehicle": "Hersteller und Fahrzeugtyp",
+          "dimensions": "Fahrzeugmaße und Bilder",
+          "mounting": "Montageort des Sensors",
+          "wedges": "Auffahrkeil",
+          "legacy": "Bisheriges Fahrzeug einem Hersteller zuordnen"
         }
       },
       "model": {
@@ -43,13 +47,11 @@
         }
       },
       "details": {
-        "title": "Fahrzeug, Maße & Auffahrkeile",
-        "description": "Ausgewählt: {vehicle}. Profile liefern den Radstand. Spurweiten sind anpassbar (Radmitte zu Radmitte). Bei gleichem Wert gilt vorne auch für hinten; das hintere Feld wird dann ignoriert. Beispiel: vorne 1,81 m, hinten 1,98 m. Sensor: Schriftzug aufrecht, Vorderseite zum Innenraum; rechts/links in Fahrtrichtung. Eigene Fahrzeuge: Bilder als /local/womo/top.png oder Bild-URL eintragen. Draufsicht: vorne oben; Seitenansicht: vorne rechts. Leer verwendet die Standardgrafik. Gesamtlänge/-breite/-höhe sind optional (0 = nicht angegeben); gerechnet wird mit Radstand und Spurweiten.",
+        "title": "Fahrzeugmaße und Bilder",
+        "description": "Ausgewählt: {vehicle}. Profile liefern den Radstand. Spurweiten sind anpassbar (Radmitte zu Radmitte). Bei gleichem Wert gilt vorne auch für hinten; das hintere Feld wird dann ignoriert. Beispiel: vorne 1,81 m, hinten 1,98 m. Eigene Fahrzeuge: Bilder als /local/womo/top.png oder Bild-URL eintragen. Draufsicht: vorne oben; Seitenansicht: vorne rechts. Leer verwendet die Standardgrafik. Gesamtlänge/-breite/-höhe sind optional (0 = nicht angegeben); gerechnet wird mit Radstand und Spurweiten.",
         "data": {
           "longitudinal_length": "Radstand (m)",
           "transverse_width": "Spurweite vorne (m)",
-          "wedge_profile": "Auffahrkeile",
-          "sensor_orientation": "Montagewand des Sensors",
           "equal_track_widths": "Spurweite vorne und hinten gleich",
           "rear_transverse_width": "Spurweite hinten (m)",
           "vehicle_name": "Typbezeichnung",
@@ -65,6 +67,26 @@
         "title": "Neuer Hersteller",
         "data": {
           "vehicle_manufacturer": "Herstellername"
+        }
+      },
+      "vehicle": {
+        "title": "Fahrzeughersteller",
+        "description": "Wähle einen Hersteller oder füge einen neuen hinzu.",
+        "data": {
+          "vehicle_manufacturer": "Hersteller"
+        }
+      },
+      "mounting": {
+        "title": "Montageort des Sensors",
+        "description": "Schriftzug aufrecht und Vorderseite zum Innenraum. Rechts und links gelten in Fahrtrichtung.",
+        "data": {
+          "sensor_orientation": "Montageort"
+        }
+      },
+      "wedges": {
+        "title": "Auffahrkeil",
+        "data": {
+          "wedge_profile": "Keilprofil"
         }
       }
     },

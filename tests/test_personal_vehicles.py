@@ -48,12 +48,37 @@ class PersonalVehicleTests(unittest.TestCase):
         self.assertEqual(ns["custom_vehicle_metadata"](c)["display_name"],"A umbenannt")
         self.assertEqual(ns["custom_vehicle_metadata"](c)["top_image"],"/local/new.png")
 
+    def test_overview_and_separate_options_preserve_the_active_vehicle(self):
+        options = {
+            "vehicle_profile": "user_old",
+            "custom_vehicles": {"user_old": values("Chic C-Line", 4.2, 1.81, 1.98)},
+            "sensor_orientation": "rotated_180",
+            "wedge_profile": "milenco_quattro_2",
+        }
+        f = flow(options)
+        overview = run_flow(f.async_step_init())
+        self.assertEqual(overview["menu_options"], ["vehicle", "dimensions", "mounting", "wedges", "legacy"])
+        self.assertEqual(overview["description_placeholders"]["model"], "Chic C-Line")
+        manufacturers = run_flow(f.async_step_vehicle())["data_schema"]["vehicle_manufacturer"]
+        self.assertNotIn("Benutzerdefiniert", manufacturers)
+        legacy = run_flow(f.async_step_legacy())
+        self.assertIn("user_old", legacy["data_schema"]["vehicle_profile"])
+        dimensions = run_flow(f.async_step_dimensions())["data_schema"]
+        self.assertNotIn("sensor_orientation", dimensions)
+        self.assertNotIn("wedge_profile", dimensions)
+        for step, field, value in (
+            (f.async_step_mounting, "sensor_orientation", "wall_front"),
+            (f.async_step_wedges, "wedge_profile", "milenco_triple_3"),
+        ):
+            self.assertEqual(set(run_flow(step())["data_schema"]), {field})
+            self.assertEqual(run_flow(step({field: value}))["data"], {**options, field: value})
+
     def test_manufacturer_then_type_creation_and_filtering(self):
         f=flow({})
-        manufacturers=run_flow(f.async_step_init())["data_schema"]["vehicle_manufacturer"]
+        manufacturers=run_flow(f.async_step_vehicle())["data_schema"]["vehicle_manufacturer"]
         self.assertIn("Ahorn Camp",manufacturers)
         self.assertIn("Carthago",manufacturers)
-        self.assertEqual(run_flow(f.async_step_init({"vehicle_manufacturer":"__new__"}))["step_id"],"manufacturer")
+        self.assertEqual(run_flow(f.async_step_vehicle({"vehicle_manufacturer":"__new__"}))["step_id"],"manufacturer")
         duplicate=run_flow(f.async_step_manufacturer({"vehicle_manufacturer":" carthago "}))
         self.assertEqual(duplicate["errors"]["vehicle_manufacturer"],"manufacturer_exists")
         types=run_flow(f.async_step_manufacturer({"vehicle_manufacturer":" Hymer "}))
@@ -63,11 +88,11 @@ class PersonalVehicleTests(unittest.TestCase):
         saved=run_flow(f.async_step_details(values("B-MC",4,1.8,1.9)))["data"]
         self.assertEqual(saved["custom_vehicles"][saved["vehicle_profile"]]["vehicle_manufacturer"],"Hymer")
         f=flow(saved)
-        types=run_flow(f.async_step_init({"vehicle_manufacturer":"Hymer"}))
+        types=run_flow(f.async_step_vehicle({"vehicle_manufacturer":"Hymer"}))
         self.assertEqual(types["data_schema"]["vehicle_profile"][saved["vehicle_profile"]],"B-MC")
-        types=run_flow(f.async_step_init({"vehicle_manufacturer":"Carthago"}))
+        types=run_flow(f.async_step_vehicle({"vehicle_manufacturer":"Carthago"}))
         self.assertEqual(set(types["data_schema"]["vehicle_profile"]),{"new"})
-        types=run_flow(f.async_step_init({"vehicle_manufacturer":"Ahorn Camp"}))
+        types=run_flow(f.async_step_vehicle({"vehicle_manufacturer":"Ahorn Camp"}))
         self.assertIn("builtin:Canada AD",types["data_schema"]["vehicle_profile"])
         self.assertEqual(run_flow(f.async_step_model({"vehicle_profile":"builtin:Canada AD"}))["step_id"],"year")
 
