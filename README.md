@@ -237,10 +237,12 @@ vorne; ein zusätzlicher Diagnosesensor zeigt die effektive Spurweite hinten.
 
 ### Fork beta.11: eigene Fahrzeuge und Bilder
 
-Unter Konfigurieren → Hersteller „Benutzerdefiniert“ → „Neues Fahrzeug anlegen“
-lassen sich mehrere persönliche Fahrzeuge speichern. Bereits gespeicherte
-Fahrzeuge können dort ausgewählt, bearbeitet und umbenannt werden. Die Profile
-bleiben pro Integration/Sensor gespeichert, auch beim Wechsel zu Serienprofilen.
+Unter Konfigurieren zuerst einen Hersteller wählen. Danach einen vorhandenen
+Fahrzeugtyp auswählen oder „Neuen Typ anlegen“ wählen. Über „Neuen Hersteller
+hinzufügen“ lässt sich eine weitere Marke mit ihrem ersten Typ speichern.
+Ahorn-Serienmodelle behalten die Baujahrauswahl. Ältere eigene Profile ohne
+Hersteller stehen unter „Benutzerdefiniert“ und lassen sich beim Bearbeiten
+einem Hersteller zuordnen. Maße und Bilder bleiben pro Typ gespeichert.
 
 Jedes Fahrzeug enthält einen Namen, Radstand, Spurweiten vorne/hinten samt
 Gleichheits-Häkchen, optionale Gesamtlänge/-breite/-höhe (0 = nicht angegeben)

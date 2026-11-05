@@ -23,16 +23,16 @@
     "step": {
       "init": {
         "title": "Fahrzeughersteller",
-        "description": "Wähle zuerst den Hersteller. Weitere Hersteller wie Knaus oder Hymer können später ergänzt werden.",
+        "description": "Wähle einen Hersteller oder füge einen neuen hinzu.",
         "data": {
           "vehicle_manufacturer": "Hersteller"
         }
       },
       "model": {
-        "title": "Fahrzeugmodell",
-        "description": "Wähle das Modell des Herstellers.",
+        "title": "Fahrzeugtyp",
+        "description": "Wähle einen Typ von {manufacturer} oder lege einen neuen an.",
         "data": {
-          "vehicle_model": "Modell"
+          "vehicle_profile": "Fahrzeugtyp"
         }
       },
       "year": {
@@ -52,25 +52,27 @@
           "sensor_orientation": "Montagewand des Sensors",
           "equal_track_widths": "Spurweite vorne und hinten gleich",
           "rear_transverse_width": "Spurweite hinten (m)",
-          "vehicle_name": "Fahrzeugname",
+          "vehicle_name": "Typbezeichnung",
           "top_image": "Bild Draufsicht (Pfad oder URL)",
           "side_image": "Bild Seitenansicht (Pfad oder URL)",
           "body_length_m": "Gesamtlänge (m, optional)",
           "body_width_m": "Gesamtbreite (m, optional)",
-          "body_height_m": "Gesamthöhe (m, optional)"
+          "body_height_m": "Gesamthöhe (m, optional)",
+          "vehicle_manufacturer": "Hersteller"
         }
       },
-      "custom_vehicle": {
-        "title": "Eigene Fahrzeuge",
-        "description": "Vorhandenes Fahrzeug auswählen und bearbeiten oder ein weiteres anlegen. Maße und Bilder bleiben pro Fahrzeug gespeichert.",
+      "manufacturer": {
+        "title": "Neuer Hersteller",
         "data": {
-          "vehicle_profile": "Eigenes Fahrzeug"
+          "vehicle_manufacturer": "Herstellername"
         }
       }
     },
     "error": {
       "invalid_image": "Gib einen Bildpfad beginnend mit / oder eine vollständige HTTP(S)-Bild-URL ein.",
-      "invalid_name": "Gib einen Fahrzeugnamen ein."
+      "invalid_name": "Gib einen Fahrzeugnamen ein.",
+      "invalid_manufacturer": "Gib einen gültigen Herstellernamen ein.",
+      "manufacturer_exists": "Dieser Hersteller ist bereits vorhanden. Wähle ihn in der Herstellerliste aus."
     }
   }
 }

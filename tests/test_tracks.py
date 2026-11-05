@@ -1,5 +1,4 @@
 import ast
-import asyncio
 import math
 from pathlib import Path
 from types import SimpleNamespace
@@ -11,6 +10,17 @@ BASE=Path(__file__).resolve().parents[1]/"custom_components/xparkle_rvlevel"
 ns={}
 exec((BASE/"const.py").read_text(encoding="utf-8"),ns)
 exec((BASE/"planner.py").read_text(encoding="utf-8"),ns)
+
+
+def run_flow(coroutine):
+    """Run form stubs, which complete without event-loop I/O."""
+    try:
+        coroutine.send(None)
+    except StopIteration as result:
+        return result.value
+    finally:
+        coroutine.close()
+    raise AssertionError("The form unexpectedly suspended")
 
 
 class Field(str):
@@ -64,12 +74,12 @@ class TrackTests(unittest.TestCase):
                 flow=flow_ns["XparkleRVLevelOptionsFlow"]()
                 flow.config_entry=SimpleNamespace(options={"transverse_width":1.74})
                 flow._selection={"vehicle_manufacturer":"Benutzerdefiniert" if custom else "Ahorn Camp"}
-                form=asyncio.run(flow.async_step_details())
+                form=run_flow(flow.async_step_details())
                 for field in ("transverse_width","equal_track_widths","rear_transverse_width"):
                     self.assertIn(field,form["data_schema"])
                 inp={"transverse_width":1.81,"rear_transverse_width":1.98,"equal_track_widths":same,"wedge_profile":"milenco_quattro_2","sensor_orientation":"wall_right"}
                 if custom: inp["longitudinal_length"]=4.332
-                result=asyncio.run(flow.async_step_details(inp))["data"]
+                result=run_flow(flow.async_step_details(inp))["data"]
                 self.assertEqual(result["transverse_width"],1.81)
                 self.assertEqual(result["rear_transverse_width"],1.81 if same else 1.98)
                 self.assertEqual(ns["track_widths"](result),(1.81,1.81 if same else 1.98))
