@@ -50,11 +50,20 @@ class XBase extends HTMLElement{
  heightText(cm){return XP.fmt(cm," cm")}
  plan(v){return Object.entries(v).filter(([k,cm])=>Number.isFinite(cm)&&cm>0).map(([k,cm])=>({k,cm}))}
  planData(){return XP.ent(this.h,this.prefix(),["keilempfehlung","wedge_instruction"])?.attributes}
- planHtml(v){
+ planHtml(v, hint = null){
   const names={fl:"vorne links",fr:"vorne rechts",rl:"hinten links",rr:"hinten rechts"},p=this.plan(v),meta=this.planData();
   const target=this.querySelector("#plan"),title=this.querySelector("#wtitle");
   if(!meta||meta.wedge_limit!==2||!Object.values(v).every(Number.isFinite)){
+   if(hint)hint.textContent="Keilplan nicht verfügbar.";
    title.textContent="Plan für maximal 2 Keile";target.textContent="Keilplan nicht verfügbar – Integration auf beta.6 aktualisieren und Sensor verbinden.";return;
+  }
+  if(hint){
+   if(p.length){
+    const wheels=p.map(({k})=>names[k]).join(" und ");
+    hint.textContent=wheels[0].toUpperCase()+wheels.slice(1)+" anheben.";
+   }else{
+    hint.textContent=meta.currently_level?"Keine Keile nötig.":"Keine passende Keilkorrektur.";
+   }
   }
   title.textContent=p.length+" von 2 Keilen · "+this.wedgeName();
   target.innerHTML="";
@@ -72,7 +81,6 @@ class XBase extends HTMLElement{
   }
   if(!p.length)target.textContent=meta.currently_level?"Keine Auffahrkeile erforderlich.":"Kein Keil verbessert die aktuelle Lage mit den verfügbaren Stufen.";
  }
- tiltHint(l,q){if(!Number.isFinite(l)||!Number.isFinite(q))return "Keine Neigungsdaten";const parts=[];if(Math.abs(l)>.05)parts.push(l>0?"Vorne höher":"Hinten höher");if(Math.abs(q)>.05)parts.push(q>0?"Rechts höher":"Links höher");return parts.join(" · ")||"Nahezu waagerecht"}
  connId(k){const p=this.prefix().replace(/^sensor\./,"");const exact=`button.${p}_${k}`;if(this.h?.states?.[exact])return exact;const candidates=Object.keys(this.h?.states||{}).filter(id=>id.startsWith('button.')&&id.endsWith(`_${k}`));return candidates.find(id=>id.slice(7,-k.length-1)===p)||candidates[0]||exact}
  connected(){const p=this.prefix().replace(/^sensor\./,"");for(const id of [`binary_sensor.${p}_bluetooth_connection`,`binary_sensor.${p}_connected`,`sensor.${p}_bluetooth_connection`]){const e=this.h?.states?.[id];if(e)return ["on","connected","verbunden","true"].includes(String(e.state).toLowerCase())}return null}
  async press(k){const id=this.connId(k);if(this.h?.states?.[id])await this.h.callService("button","press",{entity_id:id})}
@@ -103,7 +111,7 @@ class XBase extends HTMLElement{
   return `/rv-level-sensor/vehicles/master4-semi-${view}.png`
  }
  wedgeStages(){const n=this.wedgeName();const m=[[/Trident/i,[4,11,17]],[/Quattro/i,[4,8,12,18]],[/Thule/i,[4.4,7.8,11.2]],[/Froli.*XL/i,[6.5,11.5]],[/Froli/i,[4.5,7.5,10.5]],[/Premium S/i,[4,8,13]],[/Fiamma.*Level Up/i,[4,7,13]]];for(const [r,v] of m)if(r.test(n))return v;return[4,8,12]}
- header(title){return `<div class="head"><b>${title}<em class=ver>1.0.1-beta.15</em></b><span>🔋 <i id="bat">—</i>%</span></div><div class="conn"><span class="pill"><i></i><b class="ct">Verbindung</b></span><button class="cb">Connect</button></div>`}
+ header(title){return `<div class="head"><b>${title}<em class=ver>1.0.1-beta.16</em></b><span>🔋 <i id="bat">—</i>%</span></div><div class="conn"><span class="pill"><i></i><b class="ct">Verbindung</b></span><button class="cb">Connect</button></div>`}
  bind(){const b=this.querySelector('.cb');if(b)b.onclick=()=>this.press(this.connected()===true?'disconnect':'connect')}
  connRender(){const on=this.connected()===true,ct=this.querySelector('.ct'),b=this.querySelector('.cb'),dot=this.querySelector('.pill i');if(!ct)return;if(on&&!this._end)this._end=Date.now()+300000;if(!on)this._end=null;const timer=()=>{if(!this._end)return '';const sec=Math.max(0,Math.ceil((this._end-Date.now())/1000));const min=Math.floor(sec/60);return ` · Auto-Aus ${String(min).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`};ct.textContent=on?'Verbunden'+timer():'Getrennt';dot.classList.toggle('on',on);b.textContent=on?'Disconnect':'Connect';b.classList.toggle('off',on);clearInterval(this._tick);if(on)this._tick=setInterval(()=>{if(this._mounted&&this.querySelector('.ct'))this.querySelector('.ct').textContent='Verbunden'+timer()},1000)}
  level(label,val,max=3){const x=Number.isFinite(val)?Math.max(-1,Math.min(1,val/max)):0;return `<div class="lv"><small>${label} (${XP.fmt(val,'°',2)})</small><div class="tube"><span class="bubble" style="left:calc(50% + ${x*34}% - 14px)"></span><i></i></div></div>`}
@@ -118,7 +126,7 @@ class XTop extends XBase{
 class XSide extends XBase{
  set hass(h){this.h=h;if(!this._built)this.build();this.render()}
  build(){this._built=1;this.innerHTML=`<ha-card><div class="wrap">${this.header('RV Level')}<div class="angle"><small>Längsneigung</small><b id="l">—</b></div><div class="hint" id="hint">—</div><div class="rv-model-name" id="modelBadge"></div><div class="stage"><img class="sideimg" id="vehicleImg" src="/rv-level-sensor/vehicles/master4-semi-side.png"><div class="ground"></div><span class="back">HINTEN</span><span class="fore">VORNE</span></div><div class="levels"><h3>Wasserwaage</h3><div id="lvq"></div><div id="lvl"></div></div><div class="keile"><div class="kt" id="wtitle">2 Milenco Triple 3</div><div id="plan"></div></div></div></ha-card>`;const s=document.createElement('style');s.textContent=this.commonCss()+`.angle{background:#171d21;border-radius:14px;padding:5px 9px;display:flex;align-items:center;gap:12px}.angle small{color:#c9cdd0}.angle b{font-size:25px}.hint{text-align:center;font-size:16px;font-weight:900;margin:3px 0 0}.stage{height:142px;position:relative;overflow:hidden}.sideimg{position:absolute;left:8%;width:84%;height:102px;top:18px;object-fit:contain;object-position:center;transform-origin:50% 88%;filter:drop-shadow(0 7px 9px #000b);transition:.25s}.ground{position:absolute;left:4%;right:4%;bottom:20px;height:3px;background:#50575c}.back,.fore{position:absolute;bottom:0}.back{left:5%}.fore{right:5%}.mini-wedge{display:inline-block;position:relative;width:54px;height:22px;vertical-align:middle;margin:0 3px}.mini-wedge i{position:absolute;bottom:0;background:#ff3e39;border-radius:2px 2px 0 0}.mini-wedge i:nth-child(1){left:0;width:18px;height:7px}.mini-wedge i:nth-child(2){left:18px;width:18px;height:14px}.mini-wedge i:nth-child(3){left:36px;width:18px;height:21px}.kr{grid-template-columns:48px minmax(125px,1fr) 58px minmax(120px,auto)}.kr .st{white-space:nowrap}@media(max-width:430px){.stage{height:136px}.sideimg{left:9%;width:82%;height:98px;top:17px}.kr{grid-template-columns:46px 1fr 54px}.kr .st{grid-column:2/4;margin-top:1px}.mini-wedge{width:50px}.mini-wedge i:nth-child(1){width:16px}.mini-wedge i:nth-child(2){left:16px;width:17px}.mini-wedge i:nth-child(3){left:33px;width:17px}}`;this.appendChild(s);this.bind()}
- render(){const l=this.n(["langsneigung","längsneigung","longitudinal_angle"]),q=this.n(["querneigung","transverse_angle"]),v=this.vals();this.querySelector('#bat').textContent=this.t(["batterie","battery"]);this.connRender();const vi=this.vehicleModel(),vim=this.querySelector('#vehicleImg');if(vim)this.setVehicleImage(vim,'side');const mb=this.querySelector('#modelBadge');if(mb){const legacy=this.isCanadaAD2019();mb.textContent=this.vehicleMeta().custom_vehicle?vi.model:legacy?'':`${vi.model} · ${vi.year}`;mb.style.display=legacy?'none':'';}this.querySelector('#l').textContent=XP.fmt(l,'°',2);this.querySelector('#hint').textContent=this.tiltHint(l,q);const img=this.querySelector('.sideimg');img.style.transform=`rotate(${Number.isFinite(l)?Math.max(-5,Math.min(5,-l*.8)):0}deg)`;this.querySelector('#lvq').innerHTML=this.level('Quer',q,3);this.querySelector('#lvl').innerHTML=this.level('Längs',l,3);this.planHtml(v)}
+ render(){const l=this.n(["langsneigung","längsneigung","longitudinal_angle"]),q=this.n(["querneigung","transverse_angle"]),v=this.vals();this.querySelector('#bat').textContent=this.t(["batterie","battery"]);this.connRender();const vi=this.vehicleModel(),vim=this.querySelector('#vehicleImg');if(vim)this.setVehicleImage(vim,'side');const mb=this.querySelector('#modelBadge');if(mb){const legacy=this.isCanadaAD2019();mb.textContent=this.vehicleMeta().custom_vehicle?vi.model:legacy?'':`${vi.model} · ${vi.year}`;mb.style.display=legacy?'none':'';}this.querySelector('#l').textContent=XP.fmt(l,'°',2);const img=this.querySelector('.sideimg');img.style.transform=`rotate(${Number.isFinite(l)?Math.max(-5,Math.min(5,-l*.8)):0}deg)`;this.querySelector('#lvq').innerHTML=this.level('Quer',q,3);this.querySelector('#lvl').innerHTML=this.level('Längs',l,3);this.planHtml(v,this.querySelector('#hint'))}
 }
 class XLegacy extends XTop{}
 if(!customElements.get('xparkle-rv-level-top-card'))customElements.define('xparkle-rv-level-top-card',XTop);

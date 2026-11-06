@@ -39,11 +39,21 @@ for(const name of ['xparkle-rv-level-top-card','xparkle-rv-level-side-card']){
  assert.match(rows[1].children[3].textContent,/Stufe 1/);
  assert.equal(rows.length,2);
  assert.doesNotMatch(card.innerHTML,/Theoretisch anheben/);
- assert.equal(card.tiltHint(0,0),'Nahezu waagerecht');
- assert.equal(card.tiltHint(0,-3.7),'Links höher');
+ if(name==='xparkle-rv-level-side-card'){
+  const hint=card.querySelector('#hint');
+  assert.equal(hint.textContent,'Vorne rechts und hinten rechts anheben.');
+  card.planHtml({fl:0,fr:0,rl:0,rr:12},hint);
+  assert.equal(hint.textContent,'Hinten rechts anheben.');
+  card.planHtml({fl:0,fr:0,rl:0,rr:0},hint);
+  assert.equal(hint.textContent,'Keine passende Keilkorrektur.');
+  card.hass={states:{...h.states,'sensor.rv_keilempfehlung':state('Plan',{wedge_limit:2,currently_level:true})}};
+  card.planHtml({fl:0,fr:0,rl:0,rr:0},hint);
+  assert.equal(hint.textContent,'Keine Keile nötig.');
+ }
  card.hass={states:{}};
  assert.equal(card.heightText(card.wheelHeights().fl),'—');
  assert.match(card.querySelector('#plan').textContent,/nicht verfügbar/);
+ if(name==='xparkle-rv-level-side-card')assert.equal(card.querySelector('#hint').textContent,'Keilplan nicht verfügbar.');
 }
 console.log('Top and side render, correct wheels/stages, residual, level hint and missing data: passed');
 const customStates={...h.states,
