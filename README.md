@@ -18,11 +18,13 @@ Home-Assistant-Integration mit Dashboard-Karten für kompatible **RVLevel-Blueto
 - Canada AD 2019 mit eigener Originalgrafik
 - automatische Bereitstellung und Registrierung der Dashboard-Karte
 - automatische Erkennung des passenden Entity-Prefix
-- einstellbare Sensorausrichtung: **Normal** oder **180° gedreht**
+- einstellbarer Montageort des Sensors an einer von vier Fahrzeugwänden
 
 ## Screenshots
 
 ### Dashboard
+
+Aktuelle Karten aus Beta.18 mit Beispieldaten.
 
 <table>
   <tr>
@@ -52,7 +54,10 @@ Die Dashboard-Karte zeigt Quer- und Längsneigung, die berechneten Anhebehöhen,
   </tr>
 </table>
 
-Die Konfiguration ist für eine spätere Erweiterung um weitere Fahrzeughersteller ausgelegt. Für hinterlegte Fahrzeugprofile werden Radstand und Spurweite automatisch verwendet. Ab **v1.0.1-beta.5** kann zusätzlich die **Sensorausrichtung** auf **Normal** oder **180° gedreht** gestellt werden. Bei 180° werden Vorder-/Hinterachse sowie Links/Rechts für Winkel, Radhöhen und Keilempfehlungen entsprechend korrigiert.
+Die Konfigurationsvorschau zeigt die aktuellen Auswahlfelder mit Beispieloptionen.
+Unter **Konfigurieren** sind Hersteller und Fahrzeugtyp, Fahrzeugmaße und Bilder,
+Montageort sowie Auffahrkeil getrennt erreichbar. Über die Dropdowns lassen sich
+eigene Hersteller, Fahrzeugtypen und Keilprofile ergänzen.
 
 ## Voraussetzungen
 
@@ -62,14 +67,27 @@ Die Konfiguration ist für eine spätere Erweiterung um weitere Fahrzeugherstell
 
 ## Installation über HACS
 
-1. In Home Assistant **HACS → Integrationen** öffnen.
-2. Über das Menü **Benutzerdefinierte Repositories** öffnen.
-3. Repository eintragen: `https://github.com/Hulki24/rv-level-sensor`
-4. Kategorie **Integration** wählen.
-5. **RV Level Sensor** installieren.
-6. Home Assistant vollständig neu starten.
-7. **Einstellungen → Geräte & Dienste → Integration hinzufügen → RV Level Sensor** öffnen.
-8. Sensor einschalten und das gefundene `RVLevel-*`-Gerät auswählen.
+1. In Home Assistant **HACS** öffnen und im Menü **⋮ → Benutzerdefinierte Repositories** wählen.
+2. https://github.com/Hulki24/rv-level-sensor eintragen, die Kategorie **Integration** wählen und das Repository hinzufügen.
+3. **RV Level Sensor** öffnen und **Herunterladen** wählen. Falls die Version nicht vorausgewählt ist, unter **Andere Version auswählen** die Vorabversion **v1.0.1-beta.18** wählen. Bei einer bestehenden HACS-Installation erreichst du die Versionsauswahl auch über **⋮ → Erneut herunterladen**.
+4. Home Assistant vollständig neu starten.
+5. Bei der Ersteinrichtung **Einstellungen → Geräte & Dienste → Integration hinzufügen → RV Level Sensor** öffnen. Den eingeschalteten Sensor unter seinem Namen **RVLevel-…** auswählen.
+
+[HACS-Dokumentation zu benutzerdefinierten Repositories](https://www.hacs.xyz/docs/faq/custom_repositories/) · [HACS-Dashboard und Downloads](https://www.hacs.xyz/docs/use/repositories/dashboard/)
+
+### Manuell installieren oder aktualisieren
+
+1. Auf der [Release-Seite für Beta.18](https://github.com/Hulki24/rv-level-sensor/releases/tag/v1.0.1-beta.18) unter **Assets** das **Source code (zip)** herunterladen und entpacken.
+2. Den enthaltenen Ordner **custom_components/xparkle_rvlevel** in den HA-Konfigurationsordner **/config/custom_components/** kopieren. Bei einem Update den vorhandenen Integrationsordner vorher sichern und dann ersetzen. Die Datei **manifest.json** muss direkt unter **/config/custom_components/xparkle_rvlevel/** liegen.
+3. Home Assistant neu starten und das Dashboard im Browser neu laden. Bei einer Ersteinrichtung den Sensor wie oben beschrieben hinzufügen.
+
+### Sensor und Fahrzeug einrichten
+
+1. In **Einstellungen → Geräte & Dienste → RV Level Sensor → Konfigurieren** Hersteller und Fahrzeugtyp auswählen.
+2. Unter **Fahrzeugmaße und Bilder** Radstand und Spurweiten prüfen. Bei unterschiedlichen Spurweiten die hintere Spurweite separat eintragen. Maße sind in Metern.
+3. Unter **Montageort des Sensors** die tatsächliche Fahrzeugwand in Fahrtrichtung auswählen. Bei senkrechter Montage zeigt der Schriftzug aufrecht und die Sensorfront in den Innenraum.
+4. Unter **Auffahrkeil** ein Profil auswählen oder einen eigenen Keil mit Stufenhöhen in Zentimetern anlegen.
+5. Eine Dashboard-Karte mit einem der unten gezeigten Kartentypen hinzufügen. Auf der Karte **Connect** wählen, um die Messung zu starten.
 
 ### Dashboard-Ressource
 
