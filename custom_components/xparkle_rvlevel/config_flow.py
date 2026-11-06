@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Any
 from uuid import uuid4
+from math import isfinite
 from urllib.parse import urlsplit
 import voluptuous as vol
 from homeassistant import config_entries
@@ -17,7 +18,7 @@ from .const import (
     CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION,
     SENSOR_ORIENTATION_NORMAL, SENSOR_ORIENTATION_ROTATED_180,
     SENSOR_WALL_RIGHT, SENSOR_WALL_LEFT, SENSOR_WALL_FRONT, SENSOR_WALL_REAR,
-    VEHICLE_PROFILES, WEDGE_PROFILES,
+    VEHICLE_PROFILES, CONF_CUSTOM_WEDGES, wedge_profiles,
     CONF_CUSTOM_VEHICLES, CONF_VEHICLE_NAME, CONF_TOP_IMAGE, CONF_SIDE_IMAGE,
     CONF_BODY_LENGTH, CONF_BODY_WIDTH, CONF_BODY_HEIGHT, CUSTOM_PROFILE_PREFIX,
 
@@ -29,9 +30,6 @@ MOUNTING_OPTIONS = {
     SENSOR_WALL_FRONT: "Wand vorne",
     SENSOR_WALL_REAR: "Wand hinten",
 }
-
-WEDGE_OPTIONS = {key: profile["label"] for key, profile in WEDGE_PROFILES.items()}
-
 
 def dropdown(choices):
     return SelectSelector({
@@ -136,7 +134,7 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
                 "manufacturer": vehicle["manufacturer"],
                 "model": vehicle.get("model", vehicle.get("label", "")),
                 "mounting": MOUNTING_OPTIONS.get(self._mounting(), "—"),
-                "wedge": WEDGE_OPTIONS.get(options.get(CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE), "—"),
+                "wedge": wedge_profiles(options).get(options.get(CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE), {}).get("label", "—"),
             },
         )
 
@@ -151,12 +149,47 @@ class XparkleRVLevelOptionsFlow(config_entries.OptionsFlow):
         }))
 
     async def async_step_wedges(self, user_input=None):
+        options = self.config_entry.options
         if user_input is not None:
-            return self.async_create_entry(title="", data={**self.config_entry.options, **user_input})
+            if user_input[CONF_WEDGE_PROFILE] == "__new__":
+                return await self.async_step_new_wedge()
+            return self.async_create_entry(title="", data={**options, **user_input})
+        choices = {key: profile["label"] for key, profile in wedge_profiles(options).items()}
+        choices["__new__"] = "Neuen Keil anlegen"
         return self.async_show_form(step_id="wedges", data_schema=vol.Schema({
-            vol.Required(CONF_WEDGE_PROFILE, default=self.config_entry.options.get(
+            vol.Required(CONF_WEDGE_PROFILE, default=options.get(
                 CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE
-            )): dropdown(WEDGE_OPTIONS),
+            )): dropdown(choices),
+        }))
+
+    async def async_step_new_wedge(self, user_input=None):
+        options = self.config_entry.options
+        errors = {}
+        name = ""
+        heights = ""
+        if user_input is not None:
+            name = user_input["wedge_name"].strip()
+            heights = user_input["wedge_heights"]
+            if not name:
+                errors["wedge_name"] = "invalid_wedge_name"
+            try:
+                stages = [float(value.strip().replace(",", ".")) for value in heights.split(";")]
+            except ValueError:
+                stages = []
+            if (not 1 <= len(stages) <= 16
+                or any(not isfinite(height) or height <= 0 for height in stages)
+                or any(low >= high for low, high in zip(stages, stages[1:]))):
+                errors["wedge_heights"] = "invalid_wedge_heights"
+            if not errors:
+                key = "user_" + uuid4().hex
+                profiles = {**options.get(CONF_CUSTOM_WEDGES, {}),
+                            key: {"label": name, "stages_cm": stages}}
+                return self.async_create_entry(title="", data={
+                    **options, CONF_CUSTOM_WEDGES: profiles, CONF_WEDGE_PROFILE: key,
+                })
+        return self.async_show_form(step_id="new_wedge", errors=errors, data_schema=vol.Schema({
+            vol.Required("wedge_name", default=name): vol.All(str, vol.Length(min=1, max=100)),
+            vol.Required("wedge_heights", default=heights): str,
         }))
 
     async def async_step_legacy(self, user_input=None):

@@ -1,7 +1,7 @@
 {
   "domain": "xparkle_rvlevel",
   "name": "RV Level Sensor",
-  "version": "1.0.1-beta.14",
+  "version": "1.0.1-beta.15",
   "documentation": "https://github.com/schmidtbenjamin91-web/rv-level-sensor",
   "config_flow": true,
   "dependencies": [],

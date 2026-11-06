@@ -73,6 +73,19 @@ class PersonalVehicleTests(unittest.TestCase):
             self.assertEqual(set(run_flow(step())["data_schema"]), {field})
             self.assertEqual(run_flow(step({field: value}))["data"], {**options, field: value})
 
+    def test_new_wedge_saves_stages_and_activates_profile(self):
+        f = flow({"vehicle_profile": "user_vehicle"})
+        self.assertEqual(run_flow(f.async_step_wedges({"wedge_profile": "__new__"}))["step_id"], "new_wedge")
+        for invalid in ("0; 5", "8; 4", "4; 4", "nan; 8"):
+            response = run_flow(f.async_step_new_wedge({"wedge_name": "Test", "wedge_heights": invalid}))
+            self.assertEqual(response["errors"], {"wedge_heights": "invalid_wedge_heights"})
+        saved = run_flow(f.async_step_new_wedge({"wedge_name": "Mein Keil", "wedge_heights": "4; 8,5; 12"}))["data"]
+        key = saved["wedge_profile"]
+        self.assertEqual(saved["vehicle_profile"], "user_vehicle")
+        self.assertEqual(ns["wedge_profiles"](saved)[key], {"label": "Mein Keil", "stages_cm": [4, 8.5, 12]})
+        choices = run_flow(flow(saved).async_step_wedges())["data_schema"]["wedge_profile"]
+        self.assertEqual(choices[key], "Mein Keil")
+
     def test_manufacturer_then_type_creation_and_filtering(self):
         f=flow({})
         manufacturers=run_flow(f.async_step_vehicle())["data_schema"]["vehicle_manufacturer"]

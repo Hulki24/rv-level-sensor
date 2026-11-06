@@ -33,7 +33,7 @@ from .const import (
     CONF_LONGITUDINAL_LENGTH, CONF_TRANSVERSE_WIDTH,
     DEFAULT_LONGITUDINAL_LENGTH, DEFAULT_TRANSVERSE_WIDTH,
     CONF_SENSOR_ORIENTATION, DEFAULT_SENSOR_ORIENTATION,
-    CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE, WEDGE_PROFILES, track_widths,
+    CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE, WEDGE_PROFILES, track_widths, wedge_profiles,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -412,7 +412,7 @@ class RVLevelCoordinator:
             self.state.level_status = "Korrektur erforderlich"
 
         # Theoretical four-wheel lifts above remain independent of the finite plan.
-        profile = WEDGE_PROFILES.get(
+        profile = wedge_profiles(self.entry.options).get(
             self.entry.options.get(CONF_WEDGE_PROFILE, DEFAULT_WEDGE_PROFILE),
             WEDGE_PROFILES[DEFAULT_WEDGE_PROFILE],
         )

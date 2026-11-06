@@ -88,13 +88,23 @@
         "data": {
           "wedge_profile": "Keilprofil"
         }
+      },
+      "new_wedge": {
+        "title": "Neuen Auffahrkeil anlegen",
+        "description": "Stufenhöhen in Zentimetern aufsteigend eingeben und mit Strichpunkten trennen, z. B. 4; 8,5; 12.",
+        "data": {
+          "wedge_name": "Name des Auffahrkeils",
+          "wedge_heights": "Stufenhöhen (cm)"
+        }
       }
     },
     "error": {
       "invalid_image": "Gib einen Bildpfad beginnend mit / oder eine vollständige HTTP(S)-Bild-URL ein.",
       "invalid_name": "Gib einen Fahrzeugnamen ein.",
       "invalid_manufacturer": "Gib einen gültigen Herstellernamen ein.",
-      "manufacturer_exists": "Dieser Hersteller ist bereits vorhanden. Wähle ihn in der Herstellerliste aus."
+      "manufacturer_exists": "Dieser Hersteller ist bereits vorhanden. Wähle ihn in der Herstellerliste aus.",
+      "invalid_wedge_name": "Gib einen Namen ein.",
+      "invalid_wedge_heights": "Gib 1 bis 16 positive, aufsteigende Stufenhöhen ein, getrennt durch Strichpunkte."
     }
   }
 }

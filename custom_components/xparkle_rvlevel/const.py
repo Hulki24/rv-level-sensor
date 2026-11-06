@@ -123,3 +123,11 @@ def custom_vehicle_metadata(options):
         CONF_BODY_WIDTH: source.get(CONF_BODY_WIDTH, 0),
         CONF_BODY_HEIGHT: source.get(CONF_BODY_HEIGHT, 0),
     }
+
+
+CONF_CUSTOM_WEDGES = "custom_wedges"
+
+
+def wedge_profiles(options):
+    """Combine the supplied profiles with profiles saved by the user."""
+    return {**options.get(CONF_CUSTOM_WEDGES, {}), **WEDGE_PROFILES}

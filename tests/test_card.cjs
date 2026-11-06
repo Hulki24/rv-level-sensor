@@ -16,8 +16,8 @@ const h={states:{
  'sensor.rv_keil_hinten_links':state(0),'sensor.rv_keil_hinten_rechts':state(12),
  'sensor.rv_vorne_links_anheben':state(1.5),'sensor.rv_vorne_rechts_anheben':state(14.7),
  'sensor.rv_hinten_links_anheben':state(0),'sensor.rv_hinten_rechts_anheben':state(13.2),
- 'sensor.rv_keilprofil':state('Milenco · Quattro 2'),
- 'sensor.rv_keilempfehlung':state('Plan',{wedge_limit:2,residual_longitudinal_angle:.077,residual_transverse_angle:.229})
+ 'sensor.rv_keilprofil':state('Eigener Keil'),
+ 'sensor.rv_keilempfehlung':state('Plan',{wedge_limit:2,stages:{front_right:2,rear_right:1},residual_longitudinal_angle:.077,residual_transverse_angle:.229})
 }};
 for(const name of ['xparkle-rv-level-top-card','xparkle-rv-level-side-card']){
  const card=new (elements.get(name))();card.setConfig({entity_prefix:'sensor.rv'});card.hass=h;
@@ -35,9 +35,10 @@ for(const name of ['xparkle-rv-level-top-card','xparkle-rv-level-side-card']){
  const rows=card.querySelector('#plan').children;
  assert.equal(rows[0].children[1].textContent,'vorne rechts');
  assert.equal(rows[1].children[1].textContent,'hinten rechts');
- assert.match(rows[0].children[3].textContent,/Stufe 4.*18 cm/);
- assert.match(rows[1].children[3].textContent,/Stufe 3/);
- assert.match(rows[2].textContent,/Restneigung geschätzt/);
+ assert.match(rows[0].children[3].textContent,/Stufe 2.*18 cm/);
+ assert.match(rows[1].children[3].textContent,/Stufe 1/);
+ assert.equal(rows.length,2);
+ assert.doesNotMatch(card.innerHTML,/Theoretisch anheben/);
  assert.equal(card.tiltHint(0,0),'Nahezu waagerecht');
  assert.equal(card.tiltHint(0,-3.7),'Links höher');
  card.hass={states:{}};
