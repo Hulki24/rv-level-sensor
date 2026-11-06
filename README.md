@@ -2,7 +2,8 @@
 
 Home-Assistant-Integration mit Dashboard-Karten für kompatible **RVLevel-Bluetooth-Nivelliersensoren**. Das Projekt ist nicht auf eine einzelne Handelsmarke beschränkt und ist für den von uns verwendeten **Xparkle RV Level Sensor** sowie den **RV Level Sensor von Fritz Berger** vorgesehen, sofern das Gerät das unterstützte RVLevel-BLE-Protokoll (`RVLevel-*`, Service UUID `FFF0`) verwendet.
 
-> Aktuelle stabile Version: **v1.0.0** · Aktuelle Testversion: **v1.0.1-beta.5**.
+> Aktuelle Version dieses Forks: **v1.0.1-beta.18**.
+> Ursprüngliches Projekt: [schmidtbenjamin91-web/rv-level-sensor](https://github.com/schmidtbenjamin91-web/rv-level-sensor).
 
 ## Funktionen
 
@@ -61,15 +62,14 @@ Die Konfiguration ist für eine spätere Erweiterung um weitere Fahrzeugherstell
 
 ## Installation über HACS
 
-1. Dieses Repository in GitHub veröffentlichen: `schmidtbenjamin91-web/rv-level-sensor`.
-2. In Home Assistant **HACS → Integrationen** öffnen.
-3. Über das Menü **Benutzerdefinierte Repositories** öffnen.
-4. Repository eintragen: `https://github.com/schmidtbenjamin91-web/rv-level-sensor`
-5. Kategorie **Integration** wählen.
-6. **RV Level Sensor** installieren.
-7. Home Assistant vollständig neu starten.
-8. **Einstellungen → Geräte & Dienste → Integration hinzufügen → RV Level Sensor** öffnen.
-9. Sensor einschalten und das gefundene `RVLevel-*`-Gerät auswählen.
+1. In Home Assistant **HACS → Integrationen** öffnen.
+2. Über das Menü **Benutzerdefinierte Repositories** öffnen.
+3. Repository eintragen: `https://github.com/Hulki24/rv-level-sensor`
+4. Kategorie **Integration** wählen.
+5. **RV Level Sensor** installieren.
+6. Home Assistant vollständig neu starten.
+7. **Einstellungen → Geräte & Dienste → Integration hinzufügen → RV Level Sensor** öffnen.
+8. Sensor einschalten und das gefundene `RVLevel-*`-Gerät auswählen.
 
 ### Dashboard-Ressource
 
