@@ -2,7 +2,7 @@
 
 Home-Assistant-Integration mit Dashboard-Karten für kompatible **RVLevel-Bluetooth-Nivelliersensoren**. Das Projekt ist nicht auf eine einzelne Handelsmarke beschränkt und ist für den von uns verwendeten **Xparkle RV Level Sensor** sowie den **RV Level Sensor von Fritz Berger** vorgesehen, sofern das Gerät das unterstützte RVLevel-BLE-Protokoll (`RVLevel-*`, Service UUID `FFF0`) verwendet.
 
-> Aktuelle Version dieses Forks: **v1.0.1-beta.18**.
+> Aktuelle Version dieses Forks: **v1.0.1-beta.19**.
 > Ursprüngliches Projekt: [schmidtbenjamin91-web/rv-level-sensor](https://github.com/schmidtbenjamin91-web/rv-level-sensor).
 
 ## Funktionen
@@ -69,7 +69,7 @@ eigene Hersteller, Fahrzeugtypen und Keilprofile ergänzen.
 
 1. In Home Assistant **HACS** öffnen und im Menü **⋮ → Benutzerdefinierte Repositories** wählen.
 2. https://github.com/Hulki24/rv-level-sensor eintragen, die Kategorie **Integration** wählen und das Repository hinzufügen.
-3. **RV Level Sensor** öffnen und **Herunterladen** wählen. Falls die Version nicht vorausgewählt ist, unter **Andere Version auswählen** die Vorabversion **v1.0.1-beta.18** wählen. Bei einer bestehenden HACS-Installation erreichst du die Versionsauswahl auch über **⋮ → Erneut herunterladen**.
+3. **RV Level Sensor** öffnen und **Herunterladen** wählen. Falls die Version nicht vorausgewählt ist, unter **Andere Version auswählen** die Vorabversion **v1.0.1-beta.19** wählen. Bei einer bestehenden HACS-Installation erreichst du die Versionsauswahl auch über **⋮ → Erneut herunterladen**.
 4. Home Assistant vollständig neu starten.
 5. Bei der Ersteinrichtung **Einstellungen → Geräte & Dienste → Integration hinzufügen → RV Level Sensor** öffnen. Den eingeschalteten Sensor unter seinem Namen **RVLevel-…** auswählen.
 
@@ -77,7 +77,7 @@ eigene Hersteller, Fahrzeugtypen und Keilprofile ergänzen.
 
 ### Manuell installieren oder aktualisieren
 
-1. Auf der [Release-Seite für Beta.18](https://github.com/Hulki24/rv-level-sensor/releases/tag/v1.0.1-beta.18) unter **Assets** das **Source code (zip)** herunterladen und entpacken.
+1. Auf der [Release-Seite für Beta.19](https://github.com/Hulki24/rv-level-sensor/releases/tag/v1.0.1-beta.19) unter **Assets** das **Source code (zip)** herunterladen und entpacken.
 2. Den enthaltenen Ordner **custom_components/xparkle_rvlevel** in den HA-Konfigurationsordner **/config/custom_components/** kopieren. Bei einem Update den vorhandenen Integrationsordner vorher sichern und dann ersetzen. Die Datei **manifest.json** muss direkt unter **/config/custom_components/xparkle_rvlevel/** liegen.
 3. Home Assistant neu starten und das Dashboard im Browser neu laden. Bei einer Ersteinrichtung den Sensor wie oben beschrieben hinzufügen.
 
