@@ -23,8 +23,8 @@ class PlannerTests(unittest.TestCase):
 
     def test_user_right_low_case(self):
         plan=planner.plan_wedges(-.23,-3.70,3.735,2.04,[4,8,12,16])
-        self.assertEqual(plan["heights_cm"], dict(zip(planner.CORNERS,[0,16,0,12])))
-        self.assertLess(plan["residual_total_angle"], .3)
+        self.assertEqual(plan["heights_cm"], dict(zip(planner.CORNERS,[0,12,0,12])))
+        self.assertLess(plan["residual_total_angle"], .5)
 
     def test_level_and_below_smallest_useful_step(self):
         for angle in [(0,0),(.01,-.01),(.05,0)]:
@@ -39,12 +39,14 @@ class PlannerTests(unittest.TestCase):
             plan=planner.plan_wedges(pitch,roll,4.332,1.74,stages)
             chosen=list(plan["heights_cm"].values())
             def score(h):
-                fl,fr,rl,rr=h
-                p=math.atan(math.tan(math.radians(pitch))+(fl+fr-rl-rr)/866.4)
-                q=math.atan(math.tan(math.radians(roll))+(fr+rr-fl-rl)/348)
-                return p*p+q*q
+                base = [433.2 * math.tan(math.radians(pitch))/2 * x
+                        + 174 * math.tan(math.radians(roll))/2 * y
+                        for x,y in [(1,-1),(1,1),(-1,-1),(-1,1)]]
+                corrected = [a+b for a,b in zip(base,h)]
+                mean = sum(corrected)/4
+                return sum((v-mean)**2 for v in corrected)/4
             reference=min(score(h) for h in itertools.product([0]+stages,repeat=4)
-                          if sum(v>0 for v in h)<=2)
+                          if sum(v>0 for v in h)<=2 and not(h[0] and h[3]) and not(h[1] and h[2]))
             self.assertAlmostEqual(score(chosen),reference,places=10)
             self.assertLessEqual(sum(v>0 for v in chosen),2)
             self.assertTrue(set(chosen)<=set([0]+stages))
@@ -54,6 +56,17 @@ class PlannerTests(unittest.TestCase):
         plan=planner.plan_wedges(0,-10,4.332,1.74,[4,8,12])
         self.assertEqual(tuple(plan["heights_cm"].values()),(0,12,0,12))
         self.assertGreater(plan["residual_total_angle"],5)
+
+    def test_small_inclination_never_recommends_large_diagonal_lifts(self):
+        for length in (3.735, 4.332):
+            plan=planner.plan_wedges(-.14,-.45,length,1.81,[4,8,12,18],rear_width_m=1.98)
+            heights=plan["heights_cm"]
+            self.assertFalse(heights["front_right"] and heights["rear_left"])
+            self.assertFalse(heights["front_left"] and heights["rear_right"])
+            self.assertLessEqual(max(heights.values()),4)
+            physical=planner.corner_heights(-.14,-.45,length,1.81,1.98)
+            corrected=[physical[k]+h for k,h in heights.items()]
+            self.assertLessEqual(max(corrected)-min(corrected),max(physical.values())-min(physical.values()))
 
     def test_invalid_inputs(self):
         for args in [(float("nan"),0,4,2,[4]),(0,0,0,2,[4]),

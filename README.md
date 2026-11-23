@@ -176,9 +176,9 @@ angezeigt werden. Ein vorhandener Nullabgleich der App wird dadurch nicht ersetz
 
 Die Integration vergleicht alle Radpaare sowie einzelne Keile und die Variante ohne
 Keil. Verwendet werden ausschließlich die festen Stufen des gewählten Keilprofils.
-Gewählt wird die Kombination mit der kleinsten Summe der quadrierten Restwinkel
-für Längs- und Querneigung. Bei gleichem Ergebnis werden geringere Verwindung,
-weniger Keile und geringere Gesamthöhe bevorzugt.
+Ab beta.19 wird die Streuung der verbleibenden vier Radhöhen minimiert.
+Diagonale Zwei-Keil-Kombinationen sind ausgeschlossen. Bei gleichem Ergebnis
+werden weniger Keile und eine geringere Gesamthöhe bevorzugt.
 
 Ab beta.8 zeigen die Zahlen am Fahrzeug wieder die ursprünglichen **theoretischen
 Anhebehöhen je Rad**. Sie sind aus den Winkeln berechnet und keine direkt gemessenen
@@ -287,3 +287,12 @@ Bestehende benutzerdefinierte Maße bleiben beim Öffnen erhalten. Erst beim
 Speichern wird dieses Fahrzeug zu einem benannten persönlichen Profil.
 Die Dateien im Integrationsordner werden bei Updates ersetzt; eigene Bilder
 deshalb im www-Ordner ablegen.
+
+### Korrektur beta.19
+
+Beta.18 konnte bei kleiner Neigung hohe diagonale Keile empfehlen, weil sich
+deren Wirkung in den gemittelten Winkeln aufhob. Die Planung bewertet jetzt
+alle vier resultierenden Radaufstandshöhen und berücksichtigt damit auch die
+Verschränkung. Diagonale Zwei-Keil-Kombinationen werden ausgeschlossen.
+Regressionstest mit längs -0,14°, quer -0,45° und Spurweiten 1,81/1,98 m ergänzt.
+Die tatsächliche Wirkung bleibt vom Fahrzeug und Untergrund abhängig.

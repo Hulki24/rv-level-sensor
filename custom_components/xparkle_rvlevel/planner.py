@@ -15,7 +15,7 @@ def corner_heights(longitudinal, transverse, length_m, front_width_m, rear_width
 
 
 def plan_wedges(longitudinal, transverse, length_m, width_m, stages_cm, rear_width_m=None):
-    """Minimize squared residual pitch/roll across zero, one or two wedges.
+    """Minimize residual wheel-height variance with zero, one or two wedges.
 
     The trapezoidal wheel-support plane is fitted with equal wheel weights:
     pitch changes with mean front minus mean rear lift. Roll is the fitted
@@ -41,9 +41,12 @@ def plan_wedges(longitudinal, transverse, length_m, width_m, stages_cm, rear_wid
         fl, fr, rl, rr = heights
         p = math.degrees(math.atan(pitch + (fl + fr - rl - rr) / (2 * length)))
         q = math.degrees(math.atan(roll + (width * (fr - fl) + rear_width * (rr - rl)) / (width**2 + rear_width**2)))
-        # Tie breaks: less suspension twist, fewer wedges, less total lift.
-        rank = (round(p*p + q*q, 12), abs(rear_width * (fr - fl) - width * (rr - rl)),
-                sum(h > 0 for h in heights), sum(heights))
+        # Include all support heights in the objective. Averaging just pitch
+        # and roll hides diagonal twist and can recommend excessively high ramps.
+        corrected = [physical[corner] + height for corner, height in zip(CORNERS, heights)]
+        mean_height = sum(corrected) / 4
+        variance = sum((height - mean_height)**2 for height in corrected) / 4
+        rank = (round(variance, 12), sum(h > 0 for h in heights), sum(heights))
         return rank, p, q
 
     best = (0.0, 0.0, 0.0, 0.0)
@@ -52,6 +55,9 @@ def plan_wedges(longitudinal, transverse, length_m, width_m, stages_cm, rear_wid
     if not currently_level:
         for count in (1, 2):
             for wheels in combinations(range(4), count):
+                # Two ramps should be approached together on one axle or side.
+                if wheels in ((0, 3), (1, 2)):
+                    continue
                 for heights in product(stages, repeat=count):
                     candidate = [0.0] * 4
                     for wheel, height in zip(wheels, heights):
